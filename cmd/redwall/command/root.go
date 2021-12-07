@@ -1,8 +1,13 @@
 package command
 
 import (
+	"os"
+	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
+	redwall "github.com/virtualtam/redwall2"
 )
 
 const (
@@ -24,6 +29,24 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if debugMode {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
+			}
+
+			userHome, err := os.UserHomeDir()
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+
+			configPath := filepath.Join(userHome, ".config", "redwall.toml")
+
+			configBytes, err := os.ReadFile(configPath)
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+
+			config := &redwall.Config{}
+			_, err = toml.Decode(string(configBytes), config)
+			if err != nil {
+				cobra.CheckErr(err)
 			}
 
 			return nil
