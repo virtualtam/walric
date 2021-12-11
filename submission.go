@@ -6,6 +6,8 @@ import (
 )
 
 type Submission struct {
+	ID int `db:"id"`
+
 	Subreddit   *Subreddit `db:"-"`
 	SubredditID int        `db:"subreddit_id"`
 
@@ -20,14 +22,14 @@ type Submission struct {
 	ImageWidthPx  int    `db:"image_width_px"`
 }
 
-func (s *Submission) User() string {
-	return fmt.Sprintf("u/%s", s.Author)
-}
-
 func (s *Submission) PostURL() string {
 	if s.Subreddit == nil {
 		return ""
 	}
 
 	return fmt.Sprintf("https://reddit.com/r/%s/comments/%s/", s.Subreddit.Name, s.PostID)
+}
+
+func (s *Submission) User() string {
+	return fmt.Sprintf("u/%s", s.Author)
 }

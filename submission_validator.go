@@ -23,6 +23,14 @@ func (v *submissionValidator) runValidationFns(submission *Submission, fns ...su
 	return nil
 }
 
+func (v *submissionValidator) requirePositiveID(submission *Submission) error {
+	if submission.ID < 0 {
+		return errors.New("Negative ID")
+	}
+
+	return nil
+}
+
 func (v *submissionValidator) normalizePostID(submission *Submission) error {
 	submission.PostID = strings.TrimSpace(submission.PostID)
 
@@ -35,6 +43,21 @@ func (v *submissionValidator) requirePostID(submission *Submission) error {
 	}
 
 	return nil
+}
+
+func (v *submissionValidator) ByID(id int) (*Submission, error) {
+	submission := &Submission{ID: id}
+
+	err := v.runValidationFns(
+		submission,
+		v.requirePositiveID,
+	)
+
+	if err != nil {
+		return &Submission{}, err
+	}
+
+	return v.SubmissionRepository.ByID(id)
 }
 
 func (v *submissionValidator) ByPostID(postID string) (*Submission, error) {

@@ -20,6 +20,7 @@ const (
 var (
 	debugMode bool
 
+	historyService    *redwall.HistoryService
 	submissionService *redwall.SubmissionService
 	subredditService  *redwall.SubredditService
 )
@@ -65,6 +66,9 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 
 			submissionRepository := redwall.NewSubmissionRepositorySQLite(db, subredditService)
 			submissionService = redwall.NewSubmissionService(submissionRepository)
+
+			historyRepository := redwall.NewHistoryRepositorySQLite(db, submissionService)
+			historyService = redwall.NewHistoryService(historyRepository)
 
 			return nil
 		},
