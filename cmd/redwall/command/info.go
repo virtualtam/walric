@@ -25,7 +25,7 @@ func NewInfoCommand() *cobra.Command {
 
 			fmt.Fprintf(writer, "Title\t%s\t\n", submission.Title)
 			fmt.Fprintf(writer, "Author\t%s\t\n", submission.User())
-			fmt.Fprintf(writer, "Date\t%s\t\n", submission.PostedAt)
+			fmt.Fprintf(writer, "Date\t%s\t\n", submission.PostedAt.UTC().Format("2006-01-02 15:04:05 MST"))
 			fmt.Fprintf(writer, "Post URL\t%s\t\n", submission.PostURL())
 			fmt.Fprintf(writer, "Image URL\t%s\t\n", submission.ImageURL)
 			fmt.Fprintf(writer, "Image Size\t%d x %d\t\n", submission.ImageWidthPx, submission.ImageHeightPx)
