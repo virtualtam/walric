@@ -20,7 +20,8 @@ const (
 var (
 	debugMode bool
 
-	subredditService *redwall.SubredditService
+	submissionService *redwall.SubmissionService
+	subredditService  *redwall.SubredditService
 )
 
 // NewRootCommand initializes the main CLI entrypoint and common command flags.
@@ -61,6 +62,9 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 
 			subredditRepository := redwall.NewSubredditRepositorySQLite(db)
 			subredditService = redwall.NewSubredditService(subredditRepository)
+
+			submissionRepository := redwall.NewSubmissionRepositorySQLite(db, subredditService)
+			submissionService = redwall.NewSubmissionService(submissionRepository)
 
 			return nil
 		},

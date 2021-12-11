@@ -17,6 +17,9 @@ func main() {
 
 	rootCommand := command.NewRootCommand()
 
+	infoCommand := command.NewInfoCommand()
+	rootCommand.AddCommand(infoCommand)
+
 	statsCommand := command.NewStatsCommand()
 	rootCommand.AddCommand(statsCommand)
 

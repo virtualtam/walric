@@ -28,6 +28,17 @@ func (r *SubredditRepositorySQLite) All() ([]Subreddit, error) {
 	return subreddits, nil
 }
 
+func (r *SubredditRepositorySQLite) ByID(id int) (*Subreddit, error) {
+	subreddit := &Subreddit{}
+
+	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE id=?", id).StructScan(subreddit)
+	if err != nil {
+		return &Subreddit{}, err
+	}
+
+	return subreddit, nil
+}
+
 func (r *SubredditRepositorySQLite) Stats() ([]SubredditStats, error) {
 	rows, err := r.db.Queryx(`SELECT sr.name as name, COUNT(sm.post_id) as submissions
 FROM subreddits AS sr
