@@ -1,8 +1,18 @@
 package redwall
 
+import "path/filepath"
+
+const (
+	databaseFilename string = "redwall.db"
+)
+
 type Config struct {
 	Reddit  redditInfo
 	Redwall redwallInfo
+}
+
+func (c *Config) DatabasePath() string {
+	return filepath.Join(c.Redwall.DataDir, databaseFilename)
 }
 
 type redditInfo struct {
