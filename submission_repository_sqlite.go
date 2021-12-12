@@ -43,6 +43,54 @@ FROM submissions WHERE id=?`,
 	return submission, nil
 }
 
+func (r *SubmissionRepositorySQLite) ByMinResolution(minResolution *Resolution) ([]*Submission, error) {
+	rows, err := r.db.Queryx(`
+SELECT
+  sm.author,
+  sm.created_utc,
+  sm.image_filename,
+  sm.image_height_px,
+  sm.image_width_px,
+  sm.post_id,
+  sm.subreddit_id,
+  sm.title,
+  sm.url
+FROM submissions sm
+LEFT JOIN subreddits sub ON sm.subreddit_id=sub.id
+WHERE image_height_px >= ?
+AND   image_width_px  >= ?
+ORDER BY sub.name COLLATE NOCASE, sm.created_utc
+`,
+		minResolution.HeightPx,
+		minResolution.WidthPx,
+	)
+
+	if err != nil {
+		return []*Submission{}, err
+	}
+
+	submissions := []*Submission{}
+
+	for rows.Next() {
+		submission := &Submission{}
+
+		if err := rows.StructScan(submission); err != nil {
+			return []*Submission{}, err
+		}
+
+		subreddit, err := r.subredditService.ByID(submission.SubredditID)
+		if err != nil {
+			return []*Submission{}, err
+		}
+
+		submission.Subreddit = subreddit
+
+		submissions = append(submissions, submission)
+	}
+
+	return submissions, nil
+}
+
 func (r *SubmissionRepositorySQLite) ByPostID(postID string) (*Submission, error) {
 	submission := &Submission{}
 

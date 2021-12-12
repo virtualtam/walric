@@ -60,6 +60,14 @@ func (v *submissionValidator) ByID(id int) (*Submission, error) {
 	return v.SubmissionRepository.ByID(id)
 }
 
+func (v *submissionValidator) ByMinResolution(minResolution *Resolution) ([]*Submission, error) {
+	if minResolution.HeightPx < 1 || minResolution.WidthPx < 1 {
+		return []*Submission{}, errors.New("Invalid resolution")
+	}
+
+	return v.SubmissionRepository.ByMinResolution(minResolution)
+}
+
 func (v *submissionValidator) ByPostID(postID string) (*Submission, error) {
 	submission := &Submission{PostID: postID}
 

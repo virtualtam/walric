@@ -8,6 +8,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/rs/zerolog v1.26.0
 	github.com/spf13/cobra v1.2.1
+	github.com/vcraescu/go-xrandr v0.0.0-20201121120806-4e66d7925a73
 )
 
 require (
