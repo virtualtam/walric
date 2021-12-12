@@ -1,11 +1,10 @@
 package command
 
 import (
-	"fmt"
 	"os"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+	"github.com/virtualtam/redwall2/cmd/redwall/formatter"
 )
 
 // NewInfoCommand initializes a CLI command to display information on a given
@@ -21,16 +20,7 @@ func NewInfoCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			writer := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-
-			fmt.Fprintf(writer, "Title\t%s\t\n", submission.Title)
-			fmt.Fprintf(writer, "Author\t%s\t\n", submission.User())
-			fmt.Fprintf(writer, "Date\t%s\t\n", submission.PostedAt.UTC().Format("2006-01-02 15:04:05 MST"))
-			fmt.Fprintf(writer, "Post URL\t%s\t\n", submission.PostURL())
-			fmt.Fprintf(writer, "Image URL\t%s\t\n", submission.ImageURL)
-			fmt.Fprintf(writer, "Image Size\t%d x %d\t\n", submission.ImageWidthPx, submission.ImageHeightPx)
-			fmt.Fprintf(writer, "Filename\t%s\t\n", submission.ImageFilename)
-
+			writer := formatter.FormatSubmissionAsTab(os.Stdout, submission)
 			writer.Flush()
 		},
 	}

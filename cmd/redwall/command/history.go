@@ -6,6 +6,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+	"github.com/virtualtam/redwall2/cmd/redwall/formatter"
 )
 
 // NewHistoryCommand initializes a CLI command to display the history of the
@@ -26,7 +27,7 @@ func NewHistoryCommand() *cobra.Command {
 				fmt.Fprintf(
 					writer,
 					"%s\t%s\t%d x %d\t%s\n",
-					entry.Date.UTC().Format("2006-01-02 15:04:05 MST"),
+					formatter.FormatDateAsUTC(entry.Date),
 					entry.Submission.PostID,
 					entry.Submission.ImageWidthPx,
 					entry.Submission.ImageHeightPx,

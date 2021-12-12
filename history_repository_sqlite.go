@@ -37,6 +37,23 @@ func (r *HistoryRepositorySQLite) All() ([]HistoryEntry, error) {
 	return history, nil
 }
 
+func (r *HistoryRepositorySQLite) Current() (*HistoryEntry, error) {
+	entry := &HistoryEntry{}
+
+	if err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(entry); err != nil {
+		return &HistoryEntry{}, err
+	}
+
+	submission, err := r.submissionService.ByID(entry.SubmissionID)
+	if err != nil {
+		return &HistoryEntry{}, err
+	}
+
+	entry.Submission = submission
+
+	return entry, nil
+}
+
 func NewHistoryRepositorySQLite(db *sqlx.DB, submissionService *SubmissionService) *HistoryRepositorySQLite {
 	return &HistoryRepositorySQLite{
 		db:                db,
