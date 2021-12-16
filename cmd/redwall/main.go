@@ -29,6 +29,9 @@ func main() {
 	listCandidatesCommand := command.NewListCandidatesCommand()
 	rootCommand.AddCommand(listCandidatesCommand)
 
+	searchCommand := command.NewSearchCommand()
+	rootCommand.AddCommand(searchCommand)
+
 	statsCommand := command.NewStatsCommand()
 	rootCommand.AddCommand(statsCommand)
 

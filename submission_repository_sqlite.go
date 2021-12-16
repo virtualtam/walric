@@ -1,6 +1,8 @@
 package redwall
 
 import (
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -123,6 +125,52 @@ FROM submissions WHERE post_id=?`,
 	return submission, nil
 }
 
+func (r *SubmissionRepositorySQLite) ByTitle(searchText string) ([]*Submission, error) {
+	searchPattern := fmt.Sprintf("%%%s%%", searchText)
+
+	rows, err := r.db.Queryx(`
+SELECT
+  author,
+  created_utc,
+  image_filename,
+  image_height_px,
+  image_width_px,
+  post_id,
+  subreddit_id,
+  title,
+  url
+FROM submissions
+WHERE title LIKE ? COLLATE NOCASE
+ORDER BY created_utc
+`,
+		searchPattern,
+	)
+
+	if err != nil {
+		return []*Submission{}, err
+	}
+
+	submissions := []*Submission{}
+
+	for rows.Next() {
+		submission := &Submission{}
+
+		if err := rows.StructScan(submission); err != nil {
+			return []*Submission{}, err
+		}
+
+		subreddit, err := r.subredditService.ByID(submission.SubredditID)
+		if err != nil {
+			return []*Submission{}, err
+		}
+
+		submission.Subreddit = subreddit
+
+		submissions = append(submissions, submission)
+	}
+
+	return submissions, nil
+}
 func NewSubmissionRepositorySQLite(db *sqlx.DB, subredditService *SubredditService) *SubmissionRepositorySQLite {
 	return &SubmissionRepositorySQLite{
 		db:               db,

@@ -84,6 +84,15 @@ func (v *submissionValidator) ByPostID(postID string) (*Submission, error) {
 	return v.SubmissionRepository.ByPostID(postID)
 }
 
+func (v *submissionValidator) ByTitle(searchText string) ([]*Submission, error) {
+	searchText = strings.TrimSpace(searchText)
+	if searchText == "" {
+		return []*Submission{}, errors.New("Empty search string")
+	}
+
+	return v.SubmissionRepository.ByTitle(searchText)
+}
+
 func newSubmissionValidator(submissionRepository SubmissionRepository) *submissionValidator {
 	return &submissionValidator{
 		SubmissionRepository: submissionRepository,
