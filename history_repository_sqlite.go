@@ -54,6 +54,19 @@ func (r *HistoryRepositorySQLite) Current() (*HistoryEntry, error) {
 	return entry, nil
 }
 
+func (r *HistoryRepositorySQLite) Create(entry *HistoryEntry) error {
+	_, err := r.db.NamedExec(`
+INSERT INTO history(date, submission_id)
+VALUES (:date, :submission_id)`,
+		entry,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewHistoryRepositorySQLite(db *sqlx.DB, submissionService *SubmissionService) *HistoryRepositorySQLite {
 	return &HistoryRepositorySQLite{
 		db:                db,

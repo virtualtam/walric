@@ -18,6 +18,7 @@ func (r *SubmissionRepositorySQLite) ByID(id int) (*Submission, error) {
 
 	err := r.db.QueryRowx(`
 SELECT
+  id,
   author,
   created_utc,
   image_filename,
@@ -48,6 +49,7 @@ FROM submissions WHERE id=?`,
 func (r *SubmissionRepositorySQLite) ByMinResolution(minResolution *Resolution) ([]*Submission, error) {
 	rows, err := r.db.Queryx(`
 SELECT
+  sm.id,
   sm.author,
   sm.created_utc,
   sm.image_filename,
@@ -98,6 +100,7 @@ func (r *SubmissionRepositorySQLite) ByPostID(postID string) (*Submission, error
 
 	err := r.db.QueryRowx(`
 SELECT
+  id,
   author,
   created_utc,
   image_filename,
@@ -130,6 +133,7 @@ func (r *SubmissionRepositorySQLite) ByTitle(searchText string) ([]*Submission, 
 
 	rows, err := r.db.Queryx(`
 SELECT
+  id,
   author,
   created_utc,
   image_filename,
@@ -171,6 +175,46 @@ ORDER BY created_utc
 
 	return submissions, nil
 }
+
+func (r *SubmissionRepositorySQLite) Random(minResolution *Resolution) (*Submission, error) {
+	submission := &Submission{}
+
+	err := r.db.QueryRowx(`
+SELECT
+  id,
+  author,
+  created_utc,
+  image_filename,
+  image_height_px,
+  image_width_px,
+  post_id,
+  subreddit_id,
+  title,
+  url
+FROM submissions
+WHERE image_height_px >= ?
+AND   image_width_px  >= ?
+AND   id NOT IN (SELECT submission_id from history)
+ORDER BY RANDOM() LIMIT 1
+`,
+		minResolution.HeightPx,
+		minResolution.WidthPx,
+	).StructScan(submission)
+
+	if err != nil {
+		return &Submission{}, err
+	}
+
+	subreddit, err := r.subredditService.ByID(submission.SubredditID)
+	if err != nil {
+		return &Submission{}, err
+	}
+
+	submission.Subreddit = subreddit
+
+	return submission, nil
+}
+
 func NewSubmissionRepositorySQLite(db *sqlx.DB, subredditService *SubredditService) *SubmissionRepositorySQLite {
 	return &SubmissionRepositorySQLite{
 		db:               db,
