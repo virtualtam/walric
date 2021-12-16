@@ -17,26 +17,19 @@ func main() {
 
 	rootCommand := command.NewRootCommand()
 
-	currentCommand := command.NewCurrentCommand()
-	rootCommand.AddCommand(currentCommand)
+	commands := []*cobra.Command{
+		command.NewCurrentCommand(),
+		command.NewHistoryCommand(),
+		command.NewInfoCommand(),
+		command.NewListCandidatesCommand(),
+		command.NewRandomCommand(),
+		command.NewSearchCommand(),
+		command.NewStatsCommand(),
+	}
 
-	historyCommand := command.NewHistoryCommand()
-	rootCommand.AddCommand(historyCommand)
-
-	infoCommand := command.NewInfoCommand()
-	rootCommand.AddCommand(infoCommand)
-
-	listCandidatesCommand := command.NewListCandidatesCommand()
-	rootCommand.AddCommand(listCandidatesCommand)
-
-	randomCommand := command.NewRandomCommand()
-	rootCommand.AddCommand(randomCommand)
-
-	searchCommand := command.NewSearchCommand()
-	rootCommand.AddCommand(searchCommand)
-
-	statsCommand := command.NewStatsCommand()
-	rootCommand.AddCommand(statsCommand)
+	for _, cmd := range commands {
+		rootCommand.AddCommand(cmd)
+	}
 
 	cobra.CheckErr(rootCommand.Execute())
 }
