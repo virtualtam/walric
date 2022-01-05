@@ -5,4 +5,5 @@ type SubredditRepository interface {
 	Stats() ([]SubredditStats, error)
 
 	ByID(id int) (*Subreddit, error)
+	ByName(name string) (*Subreddit, error)
 }
