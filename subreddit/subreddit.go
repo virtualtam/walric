@@ -1,4 +1,4 @@
-package redwall
+package subreddit
 
 type Subreddit struct {
 	ID   int

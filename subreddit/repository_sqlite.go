@@ -1,12 +1,12 @@
-package redwall
+package subreddit
 
 import "github.com/jmoiron/sqlx"
 
-type SubredditRepositorySQLite struct {
+type RepositorySQLite struct {
 	db *sqlx.DB
 }
 
-func (r *SubredditRepositorySQLite) All() ([]Subreddit, error) {
+func (r *RepositorySQLite) All() ([]Subreddit, error) {
 	rows, err := r.db.Queryx("SELECT id, name from subreddits ORDER BY name COLLATE NOCASE")
 
 	if err != nil {
@@ -28,7 +28,7 @@ func (r *SubredditRepositorySQLite) All() ([]Subreddit, error) {
 	return subreddits, nil
 }
 
-func (r *SubredditRepositorySQLite) ByID(id int) (*Subreddit, error) {
+func (r *RepositorySQLite) ByID(id int) (*Subreddit, error) {
 	subreddit := &Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE id=?", id).StructScan(subreddit)
@@ -39,7 +39,7 @@ func (r *SubredditRepositorySQLite) ByID(id int) (*Subreddit, error) {
 	return subreddit, nil
 }
 
-func (r *SubredditRepositorySQLite) ByName(name string) (*Subreddit, error) {
+func (r *RepositorySQLite) ByName(name string) (*Subreddit, error) {
 	subreddit := &Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE name=?", name).StructScan(subreddit)
@@ -50,7 +50,7 @@ func (r *SubredditRepositorySQLite) ByName(name string) (*Subreddit, error) {
 	return subreddit, nil
 }
 
-func (r *SubredditRepositorySQLite) Stats() ([]SubredditStats, error) {
+func (r *RepositorySQLite) Stats() ([]SubredditStats, error) {
 	rows, err := r.db.Queryx(`SELECT sr.name as name, COUNT(sm.post_id) as submissions
 FROM subreddits AS sr
 LEFT JOIN submissions AS sm ON sr.id = sm.subreddit_id
@@ -77,8 +77,8 @@ ORDER BY sr.name COLLATE NOCASE
 	return subredditStats, nil
 }
 
-func NewSubredditRepositorySQLite(db *sqlx.DB) *SubredditRepositorySQLite {
-	return &SubredditRepositorySQLite{
+func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
+	return &RepositorySQLite{
 		db: db,
 	}
 }

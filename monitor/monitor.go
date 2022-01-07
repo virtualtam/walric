@@ -1,4 +1,4 @@
-package redwall
+package monitor
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func ConnectedMonitors(xRandRScreenNo int) ([]xrandr.Monitor, error) {
 	return []xrandr.Monitor{}, errors.New("Screen not found")
 }
 
-func maxMonitorHeight(monitors []xrandr.Monitor) float32 {
+func MaxHeight(monitors []xrandr.Monitor) float32 {
 	var maxHeight float32
 
 	for _, monitor := range monitors {
@@ -45,7 +45,7 @@ func maxMonitorHeight(monitors []xrandr.Monitor) float32 {
 	return maxHeight
 }
 
-func maxMonitorWidth(monitors []xrandr.Monitor) float32 {
+func MaxWidth(monitors []xrandr.Monitor) float32 {
 	var maxWidth float32
 
 	for _, monitor := range monitors {

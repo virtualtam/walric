@@ -1,15 +1,17 @@
-package redwall
+package submission
 
 import (
 	"fmt"
 	"time"
+
+	"github.com/virtualtam/redwall2/subreddit"
 )
 
 type Submission struct {
 	ID int `db:"id"`
 
-	Subreddit   *Subreddit `db:"-"`
-	SubredditID int        `db:"subreddit_id"`
+	Subreddit   *subreddit.Subreddit `db:"-"`
+	SubredditID int                  `db:"subreddit_id"`
 
 	PostID   string    `db:"post_id"`
 	PostedAt time.Time `db:"created_utc"`

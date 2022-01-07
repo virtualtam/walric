@@ -1,32 +1,35 @@
-package redwall
+package history
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	"github.com/virtualtam/redwall2/submission"
+)
 
-var _ HistoryRepository = &HistoryRepositorySQLite{}
+var _ Repository = &RepositorySQLite{}
 
-type HistoryRepositorySQLite struct {
+type RepositorySQLite struct {
 	db                *sqlx.DB
-	submissionService *SubmissionService
+	submissionService *submission.Service
 }
 
-func (r *HistoryRepositorySQLite) All() ([]HistoryEntry, error) {
+func (r *RepositorySQLite) All() ([]Entry, error) {
 	rows, err := r.db.Queryx("SELECT date, submission_id FROM history ORDER BY date")
 	if err != nil {
-		return []HistoryEntry{}, err
+		return []Entry{}, err
 	}
 
-	history := []HistoryEntry{}
+	history := []Entry{}
 
 	for rows.Next() {
-		entry := HistoryEntry{}
+		entry := Entry{}
 
 		if err := rows.StructScan(&entry); err != nil {
-			return []HistoryEntry{}, err
+			return []Entry{}, err
 		}
 
 		submission, err := r.submissionService.ByID(entry.SubmissionID)
 		if err != nil {
-			return []HistoryEntry{}, err
+			return []Entry{}, err
 		}
 
 		entry.Submission = submission
@@ -37,16 +40,16 @@ func (r *HistoryRepositorySQLite) All() ([]HistoryEntry, error) {
 	return history, nil
 }
 
-func (r *HistoryRepositorySQLite) Current() (*HistoryEntry, error) {
-	entry := &HistoryEntry{}
+func (r *RepositorySQLite) Current() (*Entry, error) {
+	entry := &Entry{}
 
 	if err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(entry); err != nil {
-		return &HistoryEntry{}, err
+		return &Entry{}, err
 	}
 
 	submission, err := r.submissionService.ByID(entry.SubmissionID)
 	if err != nil {
-		return &HistoryEntry{}, err
+		return &Entry{}, err
 	}
 
 	entry.Submission = submission
@@ -54,7 +57,7 @@ func (r *HistoryRepositorySQLite) Current() (*HistoryEntry, error) {
 	return entry, nil
 }
 
-func (r *HistoryRepositorySQLite) Create(entry *HistoryEntry) error {
+func (r *RepositorySQLite) Create(entry *Entry) error {
 	_, err := r.db.NamedExec(`
 INSERT INTO history(date, submission_id)
 VALUES (:date, :submission_id)`,
@@ -67,8 +70,8 @@ VALUES (:date, :submission_id)`,
 	return nil
 }
 
-func NewHistoryRepositorySQLite(db *sqlx.DB, submissionService *SubmissionService) *HistoryRepositorySQLite {
-	return &HistoryRepositorySQLite{
+func NewRepositorySQLite(db *sqlx.DB, submissionService *submission.Service) *RepositorySQLite {
+	return &RepositorySQLite{
 		db:                db,
 		submissionService: submissionService,
 	}

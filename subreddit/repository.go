@@ -1,6 +1,6 @@
-package redwall
+package subreddit
 
-type SubredditRepository interface {
+type Repository interface {
 	All() ([]Subreddit, error)
 	Stats() ([]SubredditStats, error)
 

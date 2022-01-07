@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	redwall "github.com/virtualtam/redwall2"
+	"github.com/virtualtam/redwall2/monitor"
 )
 
 const (
@@ -24,7 +25,7 @@ func NewListCandidatesCommand() *cobra.Command {
 		Use:   "list-candidates",
 		Short: "List submissions suitable for the current monitor setup",
 		Run: func(cmd *cobra.Command, args []string) {
-			monitors, err := redwall.ConnectedMonitors(xRandRScreenNo)
+			monitors, err := monitor.ConnectedMonitors(xRandRScreenNo)
 			if err != nil {
 				cobra.CheckErr(err)
 			}

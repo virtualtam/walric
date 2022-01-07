@@ -11,6 +11,9 @@ import (
 	"github.com/spf13/cobra"
 
 	redwall "github.com/virtualtam/redwall2"
+	"github.com/virtualtam/redwall2/history"
+	"github.com/virtualtam/redwall2/submission"
+	"github.com/virtualtam/redwall2/subreddit"
 )
 
 const (
@@ -20,9 +23,9 @@ const (
 var (
 	debugMode bool
 
-	historyService    *redwall.HistoryService
-	submissionService *redwall.SubmissionService
-	subredditService  *redwall.SubredditService
+	historyService    *history.Service
+	submissionService *submission.Service
+	subredditService  *subreddit.Service
 )
 
 // NewRootCommand initializes the main CLI entrypoint and common command flags.
@@ -61,14 +64,14 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 				return err
 			}
 
-			subredditRepository := redwall.NewSubredditRepositorySQLite(db)
-			subredditService = redwall.NewSubredditService(subredditRepository)
+			subredditRepository := subreddit.NewRepositorySQLite(db)
+			subredditService = subreddit.NewService(subredditRepository)
 
-			submissionRepository := redwall.NewSubmissionRepositorySQLite(db, subredditService)
-			submissionService = redwall.NewSubmissionService(submissionRepository)
+			submissionRepository := submission.NewRepositorySQLite(db, subredditService)
+			submissionService = submission.NewService(submissionRepository)
 
-			historyRepository := redwall.NewHistoryRepositorySQLite(db, submissionService)
-			historyService = redwall.NewHistoryService(historyRepository)
+			historyRepository := history.NewRepositorySQLite(db, submissionService)
+			historyService = history.NewService(historyRepository)
 
 			return nil
 		},

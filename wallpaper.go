@@ -1,15 +1,13 @@
 package redwall
 
-import "github.com/vcraescu/go-xrandr"
+import (
+	"github.com/vcraescu/go-xrandr"
+	"github.com/virtualtam/redwall2/monitor"
+)
 
-type Resolution struct {
-	HeightPx int
-	WidthPx  int
-}
-
-func WallpaperResolution(monitors []xrandr.Monitor) *Resolution {
-	return &Resolution{
-		HeightPx: int(maxMonitorHeight(monitors)),
-		WidthPx:  int(maxMonitorWidth(monitors)),
+func WallpaperResolution(monitors []xrandr.Monitor) *monitor.Resolution {
+	return &monitor.Resolution{
+		HeightPx: int(monitor.MaxHeight(monitors)),
+		WidthPx:  int(monitor.MaxWidth(monitors)),
 	}
 }

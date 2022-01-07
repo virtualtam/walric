@@ -5,10 +5,10 @@ import (
 	"io"
 	"text/tabwriter"
 
-	redwall "github.com/virtualtam/redwall2"
+	"github.com/virtualtam/redwall2/submission"
 )
 
-func FormatSubmissionAsTab(output io.Writer, submission *redwall.Submission) *tabwriter.Writer {
+func FormatSubmissionAsTab(output io.Writer, submission *submission.Submission) *tabwriter.Writer {
 	writer := tabwriter.NewWriter(output, 0, 4, 2, ' ', 0)
 
 	fmt.Fprintf(writer, "Title\t%s\t\n", submission.Title)

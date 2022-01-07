@@ -1,19 +1,21 @@
-package redwall
+package submission
 
 import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/virtualtam/redwall2/monitor"
+	"github.com/virtualtam/redwall2/subreddit"
 )
 
-var _ SubmissionRepository = &SubmissionRepositorySQLite{}
+var _ Repository = &RepositorySQLite{}
 
-type SubmissionRepositorySQLite struct {
+type RepositorySQLite struct {
 	db               *sqlx.DB
-	subredditService *SubredditService
+	subredditService *subreddit.Service
 }
 
-func (r *SubmissionRepositorySQLite) ByID(id int) (*Submission, error) {
+func (r *RepositorySQLite) ByID(id int) (*Submission, error) {
 	submission := &Submission{}
 
 	err := r.db.QueryRowx(`
@@ -46,7 +48,7 @@ FROM submissions WHERE id=?`,
 	return submission, nil
 }
 
-func (r *SubmissionRepositorySQLite) ByMinResolution(minResolution *Resolution) ([]*Submission, error) {
+func (r *RepositorySQLite) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
 	rows, err := r.db.Queryx(`
 SELECT
   sm.id,
@@ -95,7 +97,7 @@ ORDER BY sub.name COLLATE NOCASE, sm.created_utc
 	return submissions, nil
 }
 
-func (r *SubmissionRepositorySQLite) ByPostID(postID string) (*Submission, error) {
+func (r *RepositorySQLite) ByPostID(postID string) (*Submission, error) {
 	submission := &Submission{}
 
 	err := r.db.QueryRowx(`
@@ -128,7 +130,7 @@ FROM submissions WHERE post_id=?`,
 	return submission, nil
 }
 
-func (r *SubmissionRepositorySQLite) ByTitle(searchText string) ([]*Submission, error) {
+func (r *RepositorySQLite) ByTitle(searchText string) ([]*Submission, error) {
 	searchPattern := fmt.Sprintf("%%%s%%", searchText)
 
 	rows, err := r.db.Queryx(`
@@ -176,7 +178,7 @@ ORDER BY created_utc
 	return submissions, nil
 }
 
-func (r *SubmissionRepositorySQLite) Random(minResolution *Resolution) (*Submission, error) {
+func (r *RepositorySQLite) Random(minResolution *monitor.Resolution) (*Submission, error) {
 	submission := &Submission{}
 
 	err := r.db.QueryRowx(`
@@ -215,8 +217,8 @@ ORDER BY RANDOM() LIMIT 1
 	return submission, nil
 }
 
-func NewSubmissionRepositorySQLite(db *sqlx.DB, subredditService *SubredditService) *SubmissionRepositorySQLite {
-	return &SubmissionRepositorySQLite{
+func NewRepositorySQLite(db *sqlx.DB, subredditService *subreddit.Service) *RepositorySQLite {
+	return &RepositorySQLite{
 		db:               db,
 		subredditService: subredditService,
 	}
