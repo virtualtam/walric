@@ -149,7 +149,7 @@ func TestValidatorByPostID(t *testing.T) {
 	}
 }
 
-func TestValidatorByTitle(t *testing.T) {
+func TestValidatorSearch(t *testing.T) {
 	testCases := []struct {
 		tname                 string
 		repositorySubmissions []*Submission
@@ -205,7 +205,7 @@ func TestValidatorByTitle(t *testing.T) {
 			repository := NewRepositoryInMemory(tt.repositorySubmissions)
 			validator := newValidator(repository)
 
-			submissions, err := validator.ByTitle(tt.text)
+			submissions, err := validator.Search(tt.text)
 
 			if tt.wantErr != nil {
 				if err == nil {

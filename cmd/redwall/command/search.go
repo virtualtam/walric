@@ -15,7 +15,7 @@ func NewSearchCommand() *cobra.Command {
 		Short: "Search for submissions by title",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			submissions, err := submissionService.ByTitle(args[0])
+			submissions, err := submissionService.Search(args[0])
 			if err != nil {
 				cobra.CheckErr(err)
 			}

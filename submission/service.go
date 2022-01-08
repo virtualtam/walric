@@ -45,8 +45,8 @@ func (s *Service) ByPostID(postID string) (*Submission, error) {
 	return submission, nil
 }
 
-func (s *Service) ByTitle(searchText string) ([]*Submission, error) {
-	submissions, err := s.Repository.ByTitle(searchText)
+func (s *Service) Search(text string) ([]*Submission, error) {
+	submissions, err := s.Repository.Search(text)
 	if err != nil {
 		return []*Submission{}, err
 	}

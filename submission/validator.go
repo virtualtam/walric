@@ -77,13 +77,13 @@ func (v *validator) ByPostID(postID string) (*Submission, error) {
 	return v.Repository.ByPostID(postID)
 }
 
-func (v *validator) ByTitle(searchText string) ([]*Submission, error) {
-	searchText = strings.TrimSpace(searchText)
-	if searchText == "" {
+func (v *validator) Search(text string) ([]*Submission, error) {
+	text = strings.TrimSpace(text)
+	if text == "" {
 		return []*Submission{}, ErrSearchTextEmpty
 	}
 
-	return v.Repository.ByTitle(searchText)
+	return v.Repository.Search(text)
 }
 
 func (v *validator) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {

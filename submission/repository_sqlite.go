@@ -107,8 +107,8 @@ FROM submissions WHERE post_id=?`,
 	return submission, nil
 }
 
-func (r *RepositorySQLite) ByTitle(searchText string) ([]*Submission, error) {
-	searchPattern := fmt.Sprintf("%%%s%%", searchText)
+func (r *RepositorySQLite) Search(text string) ([]*Submission, error) {
+	searchPattern := fmt.Sprintf("%%%s%%", text)
 
 	rows, err := r.db.Queryx(`
 SELECT

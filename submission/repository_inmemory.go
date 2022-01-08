@@ -33,7 +33,7 @@ func (r *RepositoryInMemory) ByPostID(postID string) (*Submission, error) {
 	return &Submission{}, ErrNotFound
 }
 
-func (r *RepositoryInMemory) ByTitle(text string) ([]*Submission, error) {
+func (r *RepositoryInMemory) Search(text string) ([]*Submission, error) {
 	results := []*Submission{}
 
 	for _, submission := range r.submissions {
