@@ -1,7 +1,6 @@
 package submission
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/virtualtam/redwall2/monitor"
@@ -26,8 +25,8 @@ func (v *validator) runValidationFns(submission *Submission, fns ...validationFn
 }
 
 func (v *validator) requirePositiveID(submission *Submission) error {
-	if submission.ID < 0 {
-		return errors.New("Negative ID")
+	if submission.ID <= 0 {
+		return ErrIDInvalid
 	}
 
 	return nil
@@ -41,7 +40,7 @@ func (v *validator) normalizePostID(submission *Submission) error {
 
 func (v *validator) requirePostID(submission *Submission) error {
 	if submission.PostID == "" {
-		return errors.New("Empty post ID")
+		return ErrPostIDEmpty
 	}
 
 	return nil
@@ -60,14 +59,6 @@ func (v *validator) ByID(id int) (*Submission, error) {
 	}
 
 	return v.Repository.ByID(id)
-}
-
-func (v *validator) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
-	if minResolution.HeightPx < 1 || minResolution.WidthPx < 1 {
-		return []*Submission{}, errors.New("Invalid resolution")
-	}
-
-	return v.Repository.ByMinResolution(minResolution)
 }
 
 func (v *validator) ByPostID(postID string) (*Submission, error) {
@@ -89,10 +80,26 @@ func (v *validator) ByPostID(postID string) (*Submission, error) {
 func (v *validator) ByTitle(searchText string) ([]*Submission, error) {
 	searchText = strings.TrimSpace(searchText)
 	if searchText == "" {
-		return []*Submission{}, errors.New("Empty search string")
+		return []*Submission{}, ErrSearchTextEmpty
 	}
 
 	return v.Repository.ByTitle(searchText)
+}
+
+func (v *validator) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
+	if minResolution.HeightPx < 1 || minResolution.WidthPx < 1 {
+		return []*Submission{}, ErrResolutionInvalid
+	}
+
+	return v.Repository.ByMinResolution(minResolution)
+}
+
+func (v *validator) Random(minResolution *monitor.Resolution) (*Submission, error) {
+	if minResolution.HeightPx < 1 || minResolution.WidthPx < 1 {
+		return &Submission{}, ErrResolutionInvalid
+	}
+
+	return v.Repository.Random(minResolution)
 }
 
 func newValidator(repository Repository) *validator {
