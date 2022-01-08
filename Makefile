@@ -15,6 +15,10 @@ test:
 	go test ./...
 .PHONY: test
 
+cover:
+	go test -cover ./...
+.PHONY: cover
+
 build: $(BUILD_DIR)/redwall
 
 $(BUILD_DIR)/%: $(shell find . -type f -name "*.go")

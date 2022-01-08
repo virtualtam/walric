@@ -1,7 +1,5 @@
 package history
 
-import "errors"
-
 var _ Repository = &validator{}
 
 type validationFn func(entry *Entry) error
@@ -22,7 +20,7 @@ func (v *validator) runValidationFns(entry *Entry, fns ...validationFn) error {
 
 func (v *validator) requirePositiveSubmissionID(entry *Entry) error {
 	if entry.SubmissionID < 1 {
-		return errors.New("Negative submission ID")
+		return ErrSubmissionIDNegativeOrZero
 	}
 
 	return nil
