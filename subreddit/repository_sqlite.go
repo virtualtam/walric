@@ -1,25 +1,29 @@
 package subreddit
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+)
+
+var _ Repository = &RepositorySQLite{}
 
 type RepositorySQLite struct {
 	db *sqlx.DB
 }
 
-func (r *RepositorySQLite) All() ([]Subreddit, error) {
+func (r *RepositorySQLite) All() ([]*Subreddit, error) {
 	rows, err := r.db.Queryx("SELECT id, name from subreddits ORDER BY name COLLATE NOCASE")
 
 	if err != nil {
-		return []Subreddit{}, err
+		return []*Subreddit{}, err
 	}
 
-	subreddits := []Subreddit{}
+	subreddits := []*Subreddit{}
 
 	for rows.Next() {
-		subreddit := Subreddit{}
+		subreddit := &Subreddit{}
 
-		if err := rows.StructScan(&subreddit); err != nil {
-			return []Subreddit{}, err
+		if err := rows.StructScan(subreddit); err != nil {
+			return []*Subreddit{}, err
 		}
 
 		subreddits = append(subreddits, subreddit)
