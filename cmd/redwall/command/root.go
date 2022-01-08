@@ -67,8 +67,8 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 			subredditRepository := subreddit.NewRepositorySQLite(db)
 			subredditService = subreddit.NewService(subredditRepository)
 
-			submissionRepository := submission.NewRepositorySQLite(db, subredditService)
-			submissionService = submission.NewService(submissionRepository)
+			submissionRepository := submission.NewRepositorySQLite(db)
+			submissionService = submission.NewService(submissionRepository, subredditService)
 
 			historyRepository := history.NewRepositorySQLite(db)
 			historyService = history.NewService(historyRepository, submissionService)

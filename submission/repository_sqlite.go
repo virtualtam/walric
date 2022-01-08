@@ -5,14 +5,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/virtualtam/redwall2/monitor"
-	"github.com/virtualtam/redwall2/subreddit"
 )
 
 var _ Repository = &RepositorySQLite{}
 
 type RepositorySQLite struct {
-	db               *sqlx.DB
-	subredditService *subreddit.Service
+	db *sqlx.DB
 }
 
 func (r *RepositorySQLite) ByID(id int) (*Submission, error) {
@@ -37,13 +35,6 @@ FROM submissions WHERE id=?`,
 	if err != nil {
 		return &Submission{}, err
 	}
-
-	subreddit, err := r.subredditService.ByID(submission.SubredditID)
-	if err != nil {
-		return &Submission{}, err
-	}
-
-	submission.Subreddit = subreddit
 
 	return submission, nil
 }
@@ -84,13 +75,6 @@ ORDER BY sub.name COLLATE NOCASE, sm.created_utc
 			return []*Submission{}, err
 		}
 
-		subreddit, err := r.subredditService.ByID(submission.SubredditID)
-		if err != nil {
-			return []*Submission{}, err
-		}
-
-		submission.Subreddit = subreddit
-
 		submissions = append(submissions, submission)
 	}
 
@@ -119,13 +103,6 @@ FROM submissions WHERE post_id=?`,
 	if err != nil {
 		return &Submission{}, err
 	}
-
-	subreddit, err := r.subredditService.ByID(submission.SubredditID)
-	if err != nil {
-		return &Submission{}, err
-	}
-
-	submission.Subreddit = subreddit
 
 	return submission, nil
 }
@@ -165,13 +142,6 @@ ORDER BY created_utc
 			return []*Submission{}, err
 		}
 
-		subreddit, err := r.subredditService.ByID(submission.SubredditID)
-		if err != nil {
-			return []*Submission{}, err
-		}
-
-		submission.Subreddit = subreddit
-
 		submissions = append(submissions, submission)
 	}
 
@@ -207,19 +177,11 @@ ORDER BY RANDOM() LIMIT 1
 		return &Submission{}, err
 	}
 
-	subreddit, err := r.subredditService.ByID(submission.SubredditID)
-	if err != nil {
-		return &Submission{}, err
-	}
-
-	submission.Subreddit = subreddit
-
 	return submission, nil
 }
 
-func NewRepositorySQLite(db *sqlx.DB, subredditService *subreddit.Service) *RepositorySQLite {
+func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
 	return &RepositorySQLite{
-		db:               db,
-		subredditService: subredditService,
+		db: db,
 	}
 }
