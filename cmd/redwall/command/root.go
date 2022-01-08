@@ -1,16 +1,12 @@
 package command
 
 import (
-	"os"
-	"path/filepath"
-
-	"github.com/BurntSushi/toml"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 
-	redwall "github.com/virtualtam/redwall2"
+	"github.com/virtualtam/redwall2/cmd/redwall/config"
 	"github.com/virtualtam/redwall2/history"
 	"github.com/virtualtam/redwall2/submission"
 	"github.com/virtualtam/redwall2/subreddit"
@@ -42,27 +38,12 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 
-			if configPath == "" {
-				userHome, err := os.UserHomeDir()
-				if err != nil {
-					return err
-				}
-
-				configPath = filepath.Join(userHome, ".config", "redwall.toml")
-			}
-
-			configBytes, err := os.ReadFile(configPath)
+			redwallConfig, err := config.LoadTOML(configPath)
 			if err != nil {
 				return err
 			}
 
-			config := &redwall.Config{}
-			_, err = toml.Decode(string(configBytes), config)
-			if err != nil {
-				return err
-			}
-
-			db, err := sqlx.Open("sqlite3", config.DatabasePath())
+			db, err := sqlx.Open("sqlite3", redwallConfig.DatabasePath())
 			if err != nil {
 				return err
 			}
