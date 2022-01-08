@@ -21,7 +21,8 @@ const (
 )
 
 var (
-	debugMode bool
+	configPath string
+	debugMode  bool
 
 	historyService    *history.Service
 	submissionService *submission.Service
@@ -41,12 +42,14 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 
-			userHome, err := os.UserHomeDir()
-			if err != nil {
-				return err
-			}
+			if configPath == "" {
+				userHome, err := os.UserHomeDir()
+				if err != nil {
+					return err
+				}
 
-			configPath := filepath.Join(userHome, ".config", "redwall.toml")
+				configPath = filepath.Join(userHome, ".config", "redwall.toml")
+			}
 
 			configBytes, err := os.ReadFile(configPath)
 			if err != nil {
@@ -77,6 +80,12 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 		},
 	}
 
+	cmd.PersistentFlags().StringVar(
+		&configPath,
+		"config",
+		"",
+		"Configuration file",
+	)
 	cmd.PersistentFlags().BoolVar(
 		&debugMode,
 		"debug",
