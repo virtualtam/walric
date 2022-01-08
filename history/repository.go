@@ -1,7 +1,7 @@
 package history
 
 type Repository interface {
-	All() ([]Entry, error)
+	All() ([]*Entry, error)
 	Current() (*Entry, error)
 
 	Create(entry *Entry) error

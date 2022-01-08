@@ -11,7 +11,7 @@ func TestValidatorCreate(t *testing.T) {
 
 	testCases := []struct {
 		tname             string
-		repositoryEntries []Entry
+		repositoryEntries []*Entry
 		entry             *Entry
 		wantErr           error
 	}{
@@ -25,7 +25,7 @@ func TestValidatorCreate(t *testing.T) {
 		},
 		{
 			tname: "new duplicate entry",
-			repositoryEntries: []Entry{
+			repositoryEntries: []*Entry{
 				{
 					ID:           1,
 					Date:         now,

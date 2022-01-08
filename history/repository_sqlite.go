@@ -2,37 +2,28 @@ package history
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/virtualtam/redwall2/submission"
 )
 
 var _ Repository = &RepositorySQLite{}
 
 type RepositorySQLite struct {
-	db                *sqlx.DB
-	submissionService *submission.Service
+	db *sqlx.DB
 }
 
-func (r *RepositorySQLite) All() ([]Entry, error) {
+func (r *RepositorySQLite) All() ([]*Entry, error) {
 	rows, err := r.db.Queryx("SELECT date, submission_id FROM history ORDER BY date")
 	if err != nil {
-		return []Entry{}, err
+		return []*Entry{}, err
 	}
 
-	history := []Entry{}
+	history := []*Entry{}
 
 	for rows.Next() {
-		entry := Entry{}
+		entry := &Entry{}
 
 		if err := rows.StructScan(&entry); err != nil {
-			return []Entry{}, err
+			return []*Entry{}, err
 		}
-
-		submission, err := r.submissionService.ByID(entry.SubmissionID)
-		if err != nil {
-			return []Entry{}, err
-		}
-
-		entry.Submission = submission
 
 		history = append(history, entry)
 	}
@@ -46,13 +37,6 @@ func (r *RepositorySQLite) Current() (*Entry, error) {
 	if err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(entry); err != nil {
 		return &Entry{}, err
 	}
-
-	submission, err := r.submissionService.ByID(entry.SubmissionID)
-	if err != nil {
-		return &Entry{}, err
-	}
-
-	entry.Submission = submission
 
 	return entry, nil
 }
@@ -70,9 +54,8 @@ VALUES (:date, :submission_id)`,
 	return nil
 }
 
-func NewRepositorySQLite(db *sqlx.DB, submissionService *submission.Service) *RepositorySQLite {
+func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
 	return &RepositorySQLite{
-		db:                db,
-		submissionService: submissionService,
+		db: db,
 	}
 }
