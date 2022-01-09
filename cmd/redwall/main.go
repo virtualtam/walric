@@ -22,6 +22,7 @@ func main() {
 		command.NewHistoryCommand(),
 		command.NewInfoCommand(),
 		command.NewListCandidatesCommand(),
+		command.NewMigrateCommand(),
 		command.NewRandomCommand(),
 		command.NewSearchCommand(),
 		command.NewStatsCommand(),

@@ -20,6 +20,8 @@ var (
 	configPath string
 	debugMode  bool
 
+	redwallConfig *config.Config
+
 	historyService    *history.Service
 	submissionService *submission.Service
 	subredditService  *subreddit.Service
@@ -38,10 +40,11 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 
-			redwallConfig, err := config.LoadTOML(configPath)
+			cfg, err := config.LoadTOML(configPath)
 			if err != nil {
 				return err
 			}
+			redwallConfig = cfg
 
 			db, err := sqlx.Open("sqlite3", redwallConfig.DatabasePath())
 			if err != nil {

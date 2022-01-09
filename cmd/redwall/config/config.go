@@ -17,6 +17,10 @@ type Config struct {
 	Redwall redwallInfo
 }
 
+func (c *Config) DataDir() string {
+	return c.Redwall.DataDir
+}
+
 func (c *Config) DatabasePath() string {
 	return filepath.Join(c.Redwall.DataDir, databaseFilename)
 }
