@@ -1,6 +1,9 @@
 package subreddit
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -36,6 +39,9 @@ func (r *RepositorySQLite) ByID(id int) (*Subreddit, error) {
 	subreddit := &Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE id=?", id).StructScan(subreddit)
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Subreddit{}, ErrNotFound
+	}
 	if err != nil {
 		return &Subreddit{}, err
 	}
@@ -47,6 +53,9 @@ func (r *RepositorySQLite) ByName(name string) (*Subreddit, error) {
 	subreddit := &Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE name=?", name).StructScan(subreddit)
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Subreddit{}, ErrNotFound
+	}
 	if err != nil {
 		return &Subreddit{}, err
 	}

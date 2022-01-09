@@ -1,6 +1,8 @@
 package submission
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -32,6 +34,9 @@ FROM submissions WHERE id=?`,
 		id,
 	).StructScan(submission)
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Submission{}, ErrNotFound
+	}
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -100,6 +105,9 @@ FROM submissions WHERE post_id=?`,
 		postID,
 	).StructScan(submission)
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Submission{}, ErrNotFound
+	}
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -173,6 +181,9 @@ ORDER BY RANDOM() LIMIT 1
 		minResolution.WidthPx,
 	).StructScan(submission)
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Submission{}, ErrNotFound
+	}
 	if err != nil {
 		return &Submission{}, err
 	}

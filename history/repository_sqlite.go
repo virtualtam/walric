@@ -1,6 +1,9 @@
 package history
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -34,7 +37,11 @@ func (r *RepositorySQLite) All() ([]*Entry, error) {
 func (r *RepositorySQLite) Current() (*Entry, error) {
 	entry := &Entry{}
 
-	if err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(entry); err != nil {
+	err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(entry)
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Entry{}, ErrNotFound
+	}
+	if err != nil {
 		return &Entry{}, err
 	}
 
