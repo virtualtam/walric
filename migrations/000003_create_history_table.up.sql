@@ -1,4 +1,4 @@
-CREATE TABLE history (
+CREATE TABLE IF NOT EXISTS history (
     id            INTEGER NOT NULL,
     submission_id INTEGER,
     date          DATETIME DEFAULT CURRENT_TIMESTAMP,
