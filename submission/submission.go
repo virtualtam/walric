@@ -13,23 +13,27 @@ type Submission struct {
 	Subreddit   *subreddit.Subreddit `db:"-"`
 	SubredditID int                  `db:"subreddit_id"`
 
-	PostID   string    `db:"post_id"`
-	PostedAt time.Time `db:"created_utc"`
+	// Reddit post metadata
+	Author    string    `db:"author"`
+	Permalink string    `db:"permalink"`
+	PostID    string    `db:"post_id"`
+	PostedAt  time.Time `db:"created_utc"`
+	Score     int       `db:"score"`
+	Title     string    `db:"title"`
 
-	Author        string `db:"author"`
-	Title         string `db:"title"`
-	ImageURL      string `db:"url"`
+	// Linked image metadata
+	ImageDomain string `db:"domain"`
+	ImageURL    string `db:"url"`
+	ImageNSFW   bool   `db:"over_18"`
+
+	// Redwall metadata
 	ImageFilename string `db:"image_filename"`
 	ImageHeightPx int    `db:"image_height_px"`
 	ImageWidthPx  int    `db:"image_width_px"`
 }
 
-func (s *Submission) PostURL() string {
-	if s.Subreddit == nil {
-		return ""
-	}
-
-	return fmt.Sprintf("https://reddit.com/r/%s/comments/%s/", s.Subreddit.Name, s.PostID)
+func (s *Submission) PermalinkURL() string {
+	return fmt.Sprintf("https://reddit.com%s", s.Permalink)
 }
 
 func (s *Submission) User() string {

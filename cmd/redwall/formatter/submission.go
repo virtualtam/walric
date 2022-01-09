@@ -15,10 +15,11 @@ func FormatSubmissionAsTab(output io.Writer, submission *submission.Submission) 
 	fmt.Fprintf(writer, "Author\t%s\t\n", submission.User())
 	fmt.Fprintf(writer, "Subreddit\t%s\t\n", submission.Subreddit.Name)
 	fmt.Fprintf(writer, "Posted At\t%s\t\n", FormatDateAsUTC(submission.PostedAt))
-	fmt.Fprintf(writer, "Post URL\t%s\t\n", submission.PostURL())
+	fmt.Fprintf(writer, "Permalink\t%s\t\n", submission.PermalinkURL())
 	fmt.Fprintf(writer, "Image URL\t%s\t\n", submission.ImageURL)
 	fmt.Fprintf(writer, "Image Size\t%d x %d\t\n", submission.ImageWidthPx, submission.ImageHeightPx)
 	fmt.Fprintf(writer, "Filename\t%s\t\n", submission.ImageFilename)
+	fmt.Fprintf(writer, "NSFW\t%t\t\n", submission.ImageNSFW)
 	fmt.Fprintf(writer, "Redwall ID\t%d\t\n", submission.ID)
 
 	return writer
