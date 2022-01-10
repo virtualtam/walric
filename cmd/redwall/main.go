@@ -19,6 +19,7 @@ func main() {
 
 	commands := []*cobra.Command{
 		command.NewCurrentCommand(),
+		command.NewGatherCommand(),
 		command.NewHistoryCommand(),
 		command.NewInfoCommand(),
 		command.NewListCandidatesCommand(),
