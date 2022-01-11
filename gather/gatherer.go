@@ -3,19 +3,22 @@ package gather
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 
 type Gatherer struct {
-	client *reddit.Client
+	client  *reddit.Client
+	dataDir string
 }
 
-func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subreddits []string, listPostOptions *reddit.ListPostOptions) error {
-	for _, subreddit := range subreddits {
+func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames []string, listPostOptions *reddit.ListPostOptions) error {
+	for _, subredditName := range subredditNames {
 		posts, _, err := g.client.Subreddit.TopPosts(
 			ctx,
-			subreddit,
+			subredditName,
 			listPostOptions,
 		)
 
@@ -25,7 +28,14 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subreddits []s
 
 		posts = filterImagePosts(posts)
 
-		// TODO create directory
+		if len(posts) == 0 {
+			continue
+		}
+
+		subredditDir := filepath.Join(g.dataDir, subredditName)
+		if err := os.MkdirAll(subredditDir, os.ModePerm); err != nil {
+			return err
+		}
 
 		for _, post := range posts {
 			fmt.Println(post.SubredditName, post.Title)
@@ -38,8 +48,9 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subreddits []s
 	return nil
 }
 
-func NewGatherer(client *reddit.Client) *Gatherer {
+func NewGatherer(client *reddit.Client, dataDir string) *Gatherer {
 	return &Gatherer{
-		client: client,
+		client:  client,
+		dataDir: dataDir,
 	}
 }
