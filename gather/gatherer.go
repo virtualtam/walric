@@ -3,6 +3,7 @@ package gather
 import (
 	"context"
 	"fmt"
+	"image"
 	"os"
 	"path/filepath"
 
@@ -56,12 +57,52 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 			return err
 		}
 
-		fmt.Println(dbSubreddit)
-
 		for _, post := range posts {
-			fmt.Println(post.SubredditName, post.Title)
+			_, err := g.submissionService.ByPostID(post.ID)
 
-			// TODO download file
+			if err != submission.ErrNotFound {
+				return err
+			}
+
+			postImage, err := newPostImage(subredditDir, post)
+			if err != nil {
+				return err
+			}
+
+			if err := postImage.Download(); err != nil {
+				return err
+			}
+
+			err = postImage.UpdateResolution()
+			if err == image.ErrFormat {
+				if err := os.Remove(postImage.filePath); err != nil {
+					return err
+				}
+
+				continue
+			}
+			if err != nil {
+				return err
+			}
+
+			dbSubmission := &submission.Submission{
+				Subreddit:     dbSubreddit,
+				SubredditID:   dbSubreddit.ID,
+				Author:        post.Author,
+				Permalink:     post.Permalink,
+				PostID:        post.ID,
+				PostedAt:      post.Created.UTC(),
+				Score:         post.Score,
+				Title:         post.Title,
+				ImageURL:      post.URL,
+				ImageNSFW:     post.NSFW,
+				ImageFilename: postImage.filePath,
+				ImageHeightPx: postImage.HeightPx,
+				ImageWidthPx:  postImage.WidthPx,
+			}
+
+			fmt.Printf("%#v\n", dbSubmission)
+
 			// TODO save to database
 		}
 	}
