@@ -7,11 +7,15 @@ import (
 	"path/filepath"
 
 	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/virtualtam/redwall2/submission"
+	"github.com/virtualtam/redwall2/subreddit"
 )
 
 type Gatherer struct {
-	client  *reddit.Client
-	dataDir string
+	client            *reddit.Client
+	submissionService *submission.Service
+	subredditService  *subreddit.Service
+	dataDir           string
 }
 
 func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames []string, listPostOptions *reddit.ListPostOptions) error {
@@ -37,6 +41,23 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 			return err
 		}
 
+		dbSubreddit, err := g.subredditService.ByName(subredditName)
+		if err == subreddit.ErrNotFound {
+			dbSubreddit = &subreddit.Subreddit{Name: subredditName}
+			if err = g.subredditService.Create(dbSubreddit); err != nil {
+				return err
+			}
+
+			dbSubreddit, err = g.subredditService.ByName(subredditName)
+			if err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+
+		fmt.Println(dbSubreddit)
+
 		for _, post := range posts {
 			fmt.Println(post.SubredditName, post.Title)
 
@@ -48,9 +69,11 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 	return nil
 }
 
-func NewGatherer(client *reddit.Client, dataDir string) *Gatherer {
+func NewGatherer(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string) *Gatherer {
 	return &Gatherer{
-		client:  client,
-		dataDir: dataDir,
+		client:            client,
+		submissionService: submissionService,
+		subredditService:  subredditService,
+		dataDir:           dataDir,
 	}
 }

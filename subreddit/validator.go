@@ -20,6 +20,14 @@ func (v *validator) runValidationFns(subreddit *Subreddit, fns ...validationFn) 
 	return nil
 }
 
+func (v *validator) requireDefaultID(subreddit *Subreddit) error {
+	if subreddit.ID != 0 {
+		return ErrIDInvalid
+	}
+
+	return nil
+}
+
 func (v *validator) requirePositiveID(subreddit *Subreddit) error {
 	if subreddit.ID <= 0 {
 		return ErrIDInvalid
@@ -37,6 +45,24 @@ func (v *validator) normalizeName(subreddit *Subreddit) error {
 func (v *validator) requireName(subreddit *Subreddit) error {
 	if subreddit.Name == "" {
 		return ErrNameEmpty
+	}
+
+	return nil
+}
+
+func (v *validator) ensureNameIsNotRegistered(subreddit *Subreddit) error {
+	existing, err := v.ByName(subreddit.Name)
+
+	if err == ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if existing.Name == subreddit.Name {
+		return ErrNameAlreadyRegistered
 	}
 
 	return nil
@@ -69,6 +95,21 @@ func (v *validator) ByName(name string) (*Subreddit, error) {
 	}
 
 	return v.Repository.ByName(subreddit.Name)
+}
+
+func (v *validator) Create(subreddit *Subreddit) error {
+	err := v.runValidationFns(
+		subreddit,
+		v.requireDefaultID,
+		v.normalizeName,
+		v.requireName,
+		v.ensureNameIsNotRegistered,
+	)
+	if err != nil {
+		return err
+	}
+
+	return v.Repository.Create(subreddit)
 }
 
 func newValidator(repository Repository) *validator {

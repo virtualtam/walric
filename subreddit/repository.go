@@ -6,4 +6,6 @@ type Repository interface {
 
 	ByID(id int) (*Subreddit, error)
 	ByName(name string) (*Subreddit, error)
+
+	Create(subreddit *Subreddit) error
 }

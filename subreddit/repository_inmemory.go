@@ -5,6 +5,7 @@ import "errors"
 var _ Repository = &RepositoryInMemory{}
 
 type RepositoryInMemory struct {
+	currentID  int
 	subreddits []*Subreddit
 }
 
@@ -36,8 +37,18 @@ func (r *RepositoryInMemory) ByName(name string) (*Subreddit, error) {
 	return &Subreddit{}, ErrNotFound
 }
 
+func (r *RepositoryInMemory) Create(subreddit *Subreddit) error {
+	subreddit.ID = r.currentID
+	r.currentID++
+
+	r.subreddits = append(r.subreddits, subreddit)
+
+	return nil
+}
+
 func NewRepositoryInMemory(subreddits []*Subreddit) *RepositoryInMemory {
 	return &RepositoryInMemory{
+		currentID:  1,
 		subreddits: subreddits,
 	}
 }

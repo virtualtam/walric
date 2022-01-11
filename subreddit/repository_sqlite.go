@@ -63,6 +63,15 @@ func (r *RepositorySQLite) ByName(name string) (*Subreddit, error) {
 	return subreddit, nil
 }
 
+func (r *RepositorySQLite) Create(subreddit *Subreddit) error {
+	_, err := r.db.NamedExec("INSERT INTO subreddits(name) VALUES(:name)", subreddit)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RepositorySQLite) Stats() ([]SubredditStats, error) {
 	rows, err := r.db.Queryx(`SELECT sr.name as name, COUNT(sm.post_id) as submissions
 FROM subreddits AS sr

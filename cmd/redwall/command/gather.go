@@ -22,7 +22,7 @@ func NewGatherCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			gatherer := gather.NewGatherer(redditReadOnlyClient, redwallConfig.Redwall.DataDir)
+			gatherer := gather.NewGatherer(redditReadOnlyClient, submissionService, subredditService, redwallConfig.Redwall.DataDir)
 
 			listPostOptions := &reddit.ListPostOptions{
 				ListOptions: reddit.ListOptions{Limit: redwallConfig.Redwall.SubmissionLimit},
