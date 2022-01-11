@@ -23,8 +23,15 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subreddits []s
 			return err
 		}
 
+		posts = filterImagePosts(posts)
+
+		// TODO create directory
+
 		for _, post := range posts {
 			fmt.Println(post.SubredditName, post.Title)
+
+			// TODO download file
+			// TODO save to database
 		}
 	}
 
