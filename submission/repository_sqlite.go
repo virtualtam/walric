@@ -211,6 +211,48 @@ ORDER BY RANDOM() LIMIT 1
 	return submission, nil
 }
 
+func (r *RepositorySQLite) Create(submission *Submission) error {
+	_, err := r.db.NamedExec(`
+INSERT INTO submissions(
+	subreddit_id,
+	author,
+	permalink,
+	post_id,
+	created_utc,
+	score,
+	title,
+	domain,
+	url,
+	over_18,
+	image_filename,
+	image_height_px,
+	image_width_px
+)
+VALUES (
+	:subreddit_id,
+	:author,
+	:permalink,
+	:post_id,
+	:created_utc,
+	:score,
+	:title,
+	:domain,
+	:url,
+	:over_18,
+	:image_filename,
+	:image_height_px,
+	:image_width_px
+)`,
+		submission,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
 	return &RepositorySQLite{
 		db: db,

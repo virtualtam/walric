@@ -10,4 +10,6 @@ type Repository interface {
 
 	ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error)
 	Random(minResolution *monitor.Resolution) (*Submission, error)
+
+	Create(submission *Submission) error
 }

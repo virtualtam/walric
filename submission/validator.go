@@ -24,12 +24,42 @@ func (v *validator) runValidationFns(submission *Submission, fns ...validationFn
 	return nil
 }
 
+func (v *validator) requirePositiveSubredditID(submission *Submission) error {
+	if submission.SubredditID <= 0 {
+		return ErrSubredditIDInvalid
+	}
+
+	return nil
+}
+
+func (v *validator) requireDefaultID(submission *Submission) error {
+	if submission.ID != 0 {
+		return ErrIDInvalid
+	}
+
+	return nil
+}
+
 func (v *validator) requirePositiveID(submission *Submission) error {
 	if submission.ID <= 0 {
 		return ErrIDInvalid
 	}
 
 	return nil
+}
+
+func (v *validator) ensurePostIDIsNotRegistered(submission *Submission) error {
+	_, err := v.ByPostID(submission.PostID)
+
+	if err == ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return ErrPostIDAlreadyRegistered
 }
 
 func (v *validator) normalizePostID(submission *Submission) error {
@@ -41,6 +71,20 @@ func (v *validator) normalizePostID(submission *Submission) error {
 func (v *validator) requirePostID(submission *Submission) error {
 	if submission.PostID == "" {
 		return ErrPostIDEmpty
+	}
+
+	return nil
+}
+
+func (v *validator) normalizeTitle(submission *Submission) error {
+	submission.Title = strings.TrimSpace(submission.Title)
+
+	return nil
+}
+
+func (v *validator) requireTitle(submission *Submission) error {
+	if submission.Title == "" {
+		return ErrTitleEmpty
 	}
 
 	return nil
@@ -100,6 +144,25 @@ func (v *validator) Random(minResolution *monitor.Resolution) (*Submission, erro
 	}
 
 	return v.Repository.Random(minResolution)
+}
+
+func (v *validator) Create(submission *Submission) error {
+	err := v.runValidationFns(
+		submission,
+		v.requirePositiveSubredditID,
+		v.requireDefaultID,
+		v.normalizePostID,
+		v.requirePostID,
+		v.ensurePostIDIsNotRegistered,
+		v.normalizeTitle,
+		v.requireTitle,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return v.Repository.Create(submission)
 }
 
 func newValidator(repository Repository) *validator {

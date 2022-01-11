@@ -3,6 +3,7 @@ package submission
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/virtualtam/redwall2/monitor"
 )
@@ -400,6 +401,146 @@ func TestValidatorRandom(t *testing.T) {
 
 			if submission.Title != tt.want.Title {
 				t.Errorf("want name %q, got %q", tt.want.Title, submission.Title)
+			}
+		})
+	}
+}
+
+func TestValidatorCreate(t *testing.T) {
+	testCases := []struct {
+		tname                 string
+		repositorySubmissions []*Submission
+		submission            *Submission
+		wantErr               error
+	}{
+		// nominal cases
+		{
+			tname: "new submission",
+			submission: &Submission{
+				SubredditID:   25,
+				Author:        "janedoe",
+				Permalink:     "r/dummy/comments/newnew/new_submission/",
+				PostID:        "newnew",
+				PostedAt:      time.Now().UTC(),
+				Score:         12,
+				Title:         "New Submission [800x600]",
+				ImageDomain:   "i.redd.it",
+				ImageURL:      "https://i.redd.it/newsub001.jpg",
+				ImageNSFW:     false,
+				ImageFilename: "/deta/redwall/dummy/newnew-newsub001.jpg",
+				ImageHeightPx: 600,
+				ImageWidthPx:  800,
+			},
+		},
+
+		// error cases
+		{
+			tname: "negative subreddit ID",
+			submission: &Submission{
+				SubredditID: -583,
+			},
+			wantErr: ErrSubredditIDInvalid,
+		},
+		{
+			tname: "subreddit ID equals zero",
+			submission: &Submission{
+				SubredditID: 0,
+			},
+			wantErr: ErrSubredditIDInvalid,
+		},
+		{
+			tname: "non-default ID",
+			submission: &Submission{
+				SubredditID: 12,
+				ID:          179,
+				PostID:      "nondft",
+				Title:       "Non-default [0x0]",
+			},
+			wantErr: ErrIDInvalid,
+		},
+		{
+			tname: "empty PostID",
+			submission: &Submission{
+				SubredditID: 12,
+			},
+			wantErr: ErrPostIDEmpty,
+		},
+		{
+			tname: "empty PostID (whitespace)",
+			submission: &Submission{
+				SubredditID: 12,
+				PostID:      "     ",
+			},
+			wantErr: ErrPostIDEmpty,
+		},
+		{
+			tname: "duplicate PostID",
+			repositorySubmissions: []*Submission{
+				{
+					SubredditID: 12,
+					ID:          1,
+					PostID:      "dupdup",
+				},
+			},
+			submission: &Submission{
+				SubredditID: 12,
+				PostID:      "dupdup",
+			},
+			wantErr: ErrPostIDAlreadyRegistered,
+		},
+		{
+			tname: "empty title",
+			submission: &Submission{
+				SubredditID: 12,
+				PostID:      "notitl",
+			},
+			wantErr: ErrTitleEmpty,
+		},
+		{
+			tname: "empty title (whitespace)",
+			submission: &Submission{
+				SubredditID: 12,
+				PostID:      "notitl",
+				Title:       "    ",
+			},
+			wantErr: ErrTitleEmpty,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
+			currentID := repository.currentID
+			validator := newValidator(repository)
+
+			err := validator.Create(tc.submission)
+
+			if tc.wantErr != nil {
+				if err == nil {
+					t.Error("expected an error but got none")
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Errorf("expected no error but got %q", err)
+				return
+			}
+
+			submission, err := validator.ByID(currentID)
+
+			if err != nil {
+				t.Errorf("failed to retrieve submission: %q", err)
+			}
+
+			if submission.ID != currentID {
+				t.Errorf("want ID %d, got %d", currentID, submission.ID)
+			}
+			if submission.Title != tc.submission.Title {
+				t.Errorf("want title %q, got %q", tc.submission.Title, submission.Title)
 			}
 		})
 	}

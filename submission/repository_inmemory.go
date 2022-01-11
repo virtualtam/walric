@@ -10,6 +10,7 @@ import (
 var _ Repository = &RepositoryInMemory{}
 
 type RepositoryInMemory struct {
+	currentID   int
 	submissions []*Submission
 }
 
@@ -75,8 +76,18 @@ func (r *RepositoryInMemory) Random(minResolution *monitor.Resolution) (*Submiss
 	return candidates[index], nil
 }
 
+func (r *RepositoryInMemory) Create(submission *Submission) error {
+	submission.ID = r.currentID
+	r.currentID++
+
+	r.submissions = append(r.submissions, submission)
+
+	return nil
+}
+
 func NewRepositoryInMemory(submissions []*Submission) *RepositoryInMemory {
 	return &RepositoryInMemory{
+		currentID:   len(submissions) + 1,
 		submissions: submissions,
 	}
 }
