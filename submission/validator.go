@@ -1,6 +1,7 @@
 package submission
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/virtualtam/redwall2/monitor"
@@ -51,7 +52,7 @@ func (v *validator) requirePositiveID(submission *Submission) error {
 func (v *validator) ensurePostIDIsNotRegistered(submission *Submission) error {
 	_, err := v.ByPostID(submission.PostID)
 
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return nil
 	}
 

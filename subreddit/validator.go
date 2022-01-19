@@ -1,6 +1,9 @@
 package subreddit
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
 var _ Repository = &validator{}
 
@@ -53,7 +56,7 @@ func (v *validator) requireName(subreddit *Subreddit) error {
 func (v *validator) ensureNameIsNotRegistered(subreddit *Subreddit) error {
 	existing, err := v.ByName(subreddit.Name)
 
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return nil
 	}
 

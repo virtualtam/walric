@@ -117,7 +117,7 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 			}
 
 			err = postImage.UpdateResolution()
-			if err == image.ErrFormat {
+			if errors.Is(err, image.ErrFormat) {
 				log.Warn().Msgf("%s: unknown or unsupported image file format: %s", subredditName, postImage.filePath)
 
 				if err := os.Remove(postImage.filePath); err != nil {
