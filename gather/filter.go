@@ -41,7 +41,12 @@ func maybeImageURL(mediaURL *url.URL) bool {
 		return false
 	}
 
-	// 2. check file extension
+	// 2. Check hosting domain and path
+	if mediaURL.Host == "www.reddit.com" && strings.HasPrefix(mediaURL.Path, "/gallery") {
+		return false
+	}
+
+	// 3. check file extension
 	ext := strings.ToLower(filepath.Ext(filepath.Base(mediaURL.Path)))
 
 	switch ext {
