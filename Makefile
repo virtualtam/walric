@@ -15,6 +15,14 @@ test:
 	go test ./...
 .PHONY: test
 
+race:
+	go test -race ./...
+.PHONY: race
+
+race10:
+	go test -race -count 10 ./...
+.PHONY: race10
+
 cover:
 	go test -cover ./...
 .PHONY: cover
