@@ -43,20 +43,18 @@ func TestValidatorByID(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubreddits)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubreddits)
 			validator := newValidator(repository)
 
-			subreddit, err := validator.ByID(tt.id)
+			subreddit, err := validator.ByID(tc.id)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -64,13 +62,14 @@ func TestValidatorByID(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error but got %q", err)
+				return
 			}
 
-			if subreddit.ID != tt.want.ID {
-				t.Errorf("want ID %d, got %d", tt.want.ID, subreddit.ID)
+			if subreddit.ID != tc.want.ID {
+				t.Errorf("want ID %d, got %d", tc.want.ID, subreddit.ID)
 			}
-			if subreddit.Name != tt.want.Name {
-				t.Errorf("want name %q, got %q", tt.want.Name, subreddit.Name)
+			if subreddit.Name != tc.want.Name {
+				t.Errorf("want name %q, got %q", tc.want.Name, subreddit.Name)
 			}
 		})
 	}
@@ -114,20 +113,18 @@ func TestValidatorByName(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubreddits)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubreddits)
 			validator := newValidator(repository)
 
-			subreddit, err := validator.ByName(tt.name)
+			subreddit, err := validator.ByName(tc.name)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -135,13 +132,14 @@ func TestValidatorByName(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error but got %q", err)
+				return
 			}
 
-			if subreddit.ID != tt.want.ID {
-				t.Errorf("want ID %d, got %d", tt.want.ID, subreddit.ID)
+			if subreddit.ID != tc.want.ID {
+				t.Errorf("want ID %d, got %d", tc.want.ID, subreddit.ID)
 			}
-			if subreddit.Name != tt.want.Name {
-				t.Errorf("want name %q, got %q", tt.want.Name, subreddit.Name)
+			if subreddit.Name != tc.want.Name {
+				t.Errorf("want name %q, got %q", tc.want.Name, subreddit.Name)
 			}
 		})
 	}
@@ -162,7 +160,7 @@ func TestValidatorCreate(t *testing.T) {
 		{
 			tname: "duplicate subreddit",
 			repositorySubreddits: []*Subreddit{
-				{Name: "FromSpaceWithLove"},
+				{ID: 1, Name: "FromSpaceWithLove"},
 			},
 			subreddit: &Subreddit{Name: "FromSpaceWithLove"},
 			wantErr:   ErrNameAlreadyRegistered,
@@ -186,19 +184,19 @@ func TestValidatorCreate(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubreddits)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubreddits)
 			currentID := repository.currentID
 			validator := newValidator(repository)
 
-			err := validator.Create(tt.subreddit)
+			err := validator.Create(tc.subreddit)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				} else if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -216,8 +214,8 @@ func TestValidatorCreate(t *testing.T) {
 			if subreddit.ID != currentID {
 				t.Errorf("want ID %d, got %d", currentID, subreddit.ID)
 			}
-			if subreddit.Name != tt.subreddit.Name {
-				t.Errorf("want name %q, got %q", tt.subreddit.Name, subreddit.Name)
+			if subreddit.Name != tc.subreddit.Name {
+				t.Errorf("want name %q, got %q", tc.subreddit.Name, subreddit.Name)
 			}
 		})
 	}

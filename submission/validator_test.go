@@ -46,20 +46,18 @@ func TestValidatorByID(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			validator := newValidator(repository)
 
-			submission, err := validator.ByID(tt.id)
+			submission, err := validator.ByID(tc.id)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -67,13 +65,14 @@ func TestValidatorByID(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error but got %q", err)
+				return
 			}
 
-			if submission.ID != tt.want.ID {
-				t.Errorf("want ID %d, got %d", tt.want.ID, submission.ID)
+			if submission.ID != tc.want.ID {
+				t.Errorf("want ID %d, got %d", tc.want.ID, submission.ID)
 			}
-			if submission.Title != tt.want.Title {
-				t.Errorf("want name %q, got %q", tt.want.Title, submission.Title)
+			if submission.Title != tc.want.Title {
+				t.Errorf("want name %q, got %q", tc.want.Title, submission.Title)
 			}
 		})
 	}
@@ -117,20 +116,18 @@ func TestValidatorByPostID(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			validator := newValidator(repository)
 
-			submission, err := validator.ByPostID(tt.postID)
+			submission, err := validator.ByPostID(tc.postID)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -138,13 +135,14 @@ func TestValidatorByPostID(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error but got %q", err)
+				return
 			}
 
-			if submission.ID != tt.want.ID {
-				t.Errorf("want ID %d, got %d", tt.want.ID, submission.ID)
+			if submission.ID != tc.want.ID {
+				t.Errorf("want ID %d, got %d", tc.want.ID, submission.ID)
 			}
-			if submission.Title != tt.want.Title {
-				t.Errorf("want name %q, got %q", tt.want.Title, submission.Title)
+			if submission.Title != tc.want.Title {
+				t.Errorf("want name %q, got %q", tc.want.Title, submission.Title)
 			}
 		})
 	}
@@ -201,31 +199,30 @@ func TestValidatorSearch(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			validator := newValidator(repository)
 
-			submissions, err := validator.Search(tt.text)
+			submissions, err := validator.Search(tc.text)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
 			}
 
 			if err != nil {
-				t.Errorf("expected no error but got %q", err)
+				t.Errorf("expected no error, got %q", err)
+				return
 			}
 
-			if len(submissions) != len(tt.want) {
-				t.Errorf("want %d submissions, got %d", len(tt.want), len(submissions))
+			if len(submissions) != len(tc.want) {
+				t.Errorf("want %d submissions, got %d", len(tc.want), len(submissions))
 			}
 		})
 	}
@@ -295,31 +292,30 @@ func TestValidatorByMinResolution(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			validator := newValidator(repository)
 
-			submissions, err := validator.ByMinResolution(tt.minResolution)
+			submissions, err := validator.ByMinResolution(tc.minResolution)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
 			}
 
 			if err != nil {
-				t.Errorf("expected no error but got %q", err)
+				t.Errorf("expected no error, got %q", err)
+				return
 			}
 
-			if len(submissions) != len(tt.want) {
-				t.Errorf("want %d submissions, got %d", len(tt.want), len(submissions))
+			if len(submissions) != len(tc.want) {
+				t.Errorf("want %d submissions, got %d", len(tc.want), len(submissions))
 			}
 		})
 	}
@@ -376,20 +372,18 @@ func TestValidatorRandom(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			validator := newValidator(repository)
 
-			submission, err := validator.Random(tt.minResolution)
+			submission, err := validator.Random(tc.minResolution)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -397,10 +391,11 @@ func TestValidatorRandom(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error but got %q", err)
+				return
 			}
 
-			if submission.Title != tt.want.Title {
-				t.Errorf("want name %q, got %q", tt.want.Title, submission.Title)
+			if submission.Title != tc.want.Title {
+				t.Errorf("want name %q, got %q", tc.want.Title, submission.Title)
 			}
 		})
 	}
@@ -534,6 +529,7 @@ func TestValidatorCreate(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("failed to retrieve submission: %q", err)
+				return
 			}
 
 			if submission.ID != currentID {

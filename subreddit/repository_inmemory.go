@@ -48,7 +48,7 @@ func (r *RepositoryInMemory) Create(subreddit *Subreddit) error {
 
 func NewRepositoryInMemory(subreddits []*Subreddit) *RepositoryInMemory {
 	return &RepositoryInMemory{
-		currentID:  1,
+		currentID:  len(subreddits) + 1,
 		subreddits: subreddits,
 	}
 }

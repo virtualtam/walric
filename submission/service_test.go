@@ -58,23 +58,21 @@ func TestServiceByID(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tt.repositorySubreddits)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
 			subredditService := subreddit.NewService(subredditRepository)
 
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			service := NewService(repository, subredditService)
 
-			submission, err := service.ByID(tt.id)
+			submission, err := service.ByID(tc.id)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an errot but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -82,10 +80,11 @@ func TestServiceByID(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error, got %q", err)
+				return
 			}
 
-			assertSubmissionEquals(t, tt.want, submission)
-			assertSubmissionSubredditEquals(t, tt.want, submission)
+			assertSubmissionEquals(t, tc.want, submission)
+			assertSubmissionSubredditEquals(t, tc.want, submission)
 		})
 	}
 }
@@ -133,23 +132,21 @@ func TestServiceByPostID(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tt.repositorySubreddits)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
 			subredditService := subreddit.NewService(subredditRepository)
 
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			service := NewService(repository, subredditService)
 
-			submission, err := service.ByPostID(tt.postID)
+			submission, err := service.ByPostID(tc.postID)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an errot but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -157,10 +154,11 @@ func TestServiceByPostID(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error, got %q", err)
+				return
 			}
 
-			assertSubmissionEquals(t, tt.want, submission)
-			assertSubmissionSubredditEquals(t, tt.want, submission)
+			assertSubmissionEquals(t, tc.want, submission)
+			assertSubmissionSubredditEquals(t, tc.want, submission)
 		})
 	}
 }
@@ -223,23 +221,21 @@ func TestServiceSearch(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tt.repositorySubreddits)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
 			subredditService := subreddit.NewService(subredditRepository)
 
-			repository := NewRepositoryInMemory(tt.repositorySubmissions)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions)
 			service := NewService(repository, subredditService)
 
-			submissions, err := service.Search(tt.text)
+			submissions, err := service.Search(tc.text)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an errot but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
@@ -247,13 +243,15 @@ func TestServiceSearch(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("expected no error, got %q", err)
+				return
 			}
 
-			if len(submissions) != len(tt.want) {
-				t.Errorf("want %d submissions, got %d", len(tt.want), len(submissions))
+			if len(submissions) != len(tc.want) {
+				t.Errorf("want %d submissions, got %d", len(tc.want), len(submissions))
+				return
 			}
 
-			for index, want := range tt.want {
+			for index, want := range tc.want {
 				assertSubmissionEquals(t, want, submissions[index])
 				assertSubmissionSubredditEquals(t, want, submissions[index])
 			}

@@ -51,45 +51,46 @@ func TestValidatorCreate(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.tname, func(t *testing.T) {
-			nEntries := len(tt.repositoryEntries)
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			nEntries := len(tc.repositoryEntries)
 
 			repository := &repositoryInMemory{
-				entries: tt.repositoryEntries,
+				entries: tc.repositoryEntries,
 			}
 			validator := newValidator(repository)
 
-			err := validator.Create(tt.entry)
+			err := validator.Create(tc.entry)
 
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				if err == nil {
 					t.Error("expected an error but got none")
-				}
-
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("want error %q, got %q", tt.wantErr, err)
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
 				}
 
 				return
 			}
 
 			if err != nil {
-				t.Errorf("expected no error but got %q", err)
+				t.Errorf("expected no error, got %q", err)
+				return
 			}
 
 			wantNEntries := nEntries + 1
 			if len(repository.entries) != wantNEntries {
 				t.Errorf("want %d entries, got %d", wantNEntries, len(repository.entries))
+				return
 			}
 
 			entry, err := repository.Current()
 			if err != nil {
 				t.Errorf("failed to retrieve entry: %q", err)
+				return
 			}
 
-			if entry.SubmissionID != tt.entry.SubmissionID {
-				t.Errorf("want submission ID %d, got %d", tt.entry.SubmissionID, entry.SubmissionID)
+			if entry.SubmissionID != tc.entry.SubmissionID {
+				t.Errorf("want submission ID %d, got %d", tc.entry.SubmissionID, entry.SubmissionID)
 			}
 		})
 	}
