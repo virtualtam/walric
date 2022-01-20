@@ -21,6 +21,51 @@ type Gatherer struct {
 	dataDir           string
 }
 
+func (g *Gatherer) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
+	var imagePosts []*reddit.Post
+
+	for _, post := range posts {
+		// check whether the post's URL is likely to point to an image file
+		mediaURL, err := url.Parse(post.URL)
+		if err != nil {
+			log.Error().Err(err).Msgf("failed to parse URL: %s", post.URL)
+			continue
+		}
+
+		if !maybeImageURL(mediaURL) {
+			log.Debug().Msgf(
+				"%s: submission does not contain an image: %s - %s",
+				post.SubredditName,
+				post.ID,
+				post.Title,
+			)
+			continue
+		}
+
+		// check whether the post was already saved
+		_, err = g.submissionService.ByPostID(post.ID)
+
+		if err == nil {
+			log.Debug().Msgf(
+				"%s: submission already saved: %s - %s",
+				post.SubredditName,
+				post.ID,
+				post.Title,
+			)
+			continue
+		}
+
+		if err != submission.ErrNotFound {
+			log.Error().Err(err).Msgf("database: failed to query submission information")
+			return []*reddit.Post{}, err
+		}
+
+		imagePosts = append(imagePosts, post)
+	}
+
+	return imagePosts, nil
+}
+
 func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames []string, listPostOptions *reddit.ListPostOptions) error {
 	for _, subredditName := range subredditNames {
 		topPosts, _, err := g.client.Subreddit.TopPosts(
@@ -46,15 +91,19 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 			listPostOptions.Time,
 		)
 
-		posts := filterImagePosts(topPosts)
+		posts, err := g.filterPosts(topPosts)
+		if err != nil {
+			log.Error().Err(err).Msgf("%s: failed to filter posts", subredditName)
+			return err
+		}
 
 		if len(posts) == 0 {
-			log.Warn().Msgf("%s: found no posts containing images", subredditName)
+			log.Warn().Msgf("%s: found no new posts, or no post containing images", subredditName)
 			continue
 		}
 
 		log.Info().Msgf(
-			"%s: found %d top posts containing images for the last %s",
+			"%s: found %d new posts containing images for the last %s",
 			subredditName,
 			len(posts),
 			listPostOptions.Time,
@@ -88,23 +137,6 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 		}
 
 		for _, post := range posts {
-			_, err := g.submissionService.ByPostID(post.ID)
-
-			if err == nil {
-				log.Info().Msgf(
-					"%s: submission already saved: %s - %s",
-					subredditName,
-					post.ID,
-					post.Title,
-				)
-				continue
-			}
-
-			if err != submission.ErrNotFound {
-				log.Error().Err(err).Msgf("database: failed to query submission information")
-				return err
-			}
-
 			postImage, err := newPostImage(subredditDir, post)
 			if err != nil {
 				log.Error().Err(err).Msgf("%s: failed to fetch image metadata from URL: %s", subredditName, post.URL)
