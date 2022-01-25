@@ -82,6 +82,9 @@ func newPostImage(subredditDir string, post *reddit.Post) (*postImage, error) {
 	}, nil
 }
 
+// maybeImageURL attempts to determine whether a URL points to a JPEG or PNG
+// image file, by looking at the URL's host and path. Checks are performed
+// locally, and no outgoing request is made.
 func maybeImageURL(mediaURL *url.URL) bool {
 	// 1. check hosting domain (exact match)
 	switch mediaURL.Host {
@@ -98,8 +101,9 @@ func maybeImageURL(mediaURL *url.URL) bool {
 		return false
 	}
 
-	// 2. Check hosting domain and path
+	// 2. check hosting domain and path
 	if mediaURL.Host == "www.reddit.com" && strings.HasPrefix(mediaURL.Path, "/gallery") {
+		// Reddit image gallery
 		return false
 	}
 
