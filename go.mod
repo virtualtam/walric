@@ -1,4 +1,4 @@
-module github.com/virtualtam/redwall2
+module github.com/virtualtam/walric
 
 go 1.17
 

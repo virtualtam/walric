@@ -1,8 +1,8 @@
 package submission
 
 import (
-	"github.com/virtualtam/redwall2/monitor"
-	"github.com/virtualtam/redwall2/subreddit"
+	"github.com/virtualtam/walric/monitor"
+	"github.com/virtualtam/walric/subreddit"
 )
 
 var _ Repository = &Service{}

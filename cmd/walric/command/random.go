@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	redwall "github.com/virtualtam/redwall2"
-	"github.com/virtualtam/redwall2/cmd/redwall/formatter"
-	"github.com/virtualtam/redwall2/monitor"
+	walric "github.com/virtualtam/walric"
+	"github.com/virtualtam/walric/cmd/walric/formatter"
+	"github.com/virtualtam/walric/monitor"
 )
 
 // NewRandomCommand initializes a CLI command to select a random submission
@@ -21,7 +21,7 @@ func NewRandomCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			wallpaperResolution := redwall.WallpaperResolution(monitors)
+			wallpaperResolution := walric.WallpaperResolution(monitors)
 
 			submission, err := submissionService.Random(wallpaperResolution)
 			if err != nil {

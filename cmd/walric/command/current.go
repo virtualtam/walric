@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/virtualtam/redwall2/cmd/redwall/formatter"
+	"github.com/virtualtam/walric/cmd/walric/formatter"
 )
 
 // NewCurrentCommand initializes a CLI command to display information for the

@@ -27,7 +27,7 @@ cover:
 	go test -cover ./...
 .PHONY: cover
 
-build: $(BUILD_DIR)/redwall
+build: $(BUILD_DIR)/walric
 
 $(BUILD_DIR)/%: $(shell find . -type f -name "*.go")
 	go build -trimpath -o $@ ./cmd/$*

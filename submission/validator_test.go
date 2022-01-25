@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/virtualtam/redwall2/monitor"
+	"github.com/virtualtam/walric/monitor"
 )
 
 func TestValidatorByID(t *testing.T) {
@@ -422,7 +422,7 @@ func TestValidatorCreate(t *testing.T) {
 				ImageDomain:   "i.redd.it",
 				ImageURL:      "https://i.redd.it/newsub001.jpg",
 				ImageNSFW:     false,
-				ImageFilename: "/deta/redwall/dummy/newnew-newsub001.jpg",
+				ImageFilename: "/deta/walric/dummy/newnew-newsub001.jpg",
 				ImageHeightPx: 600,
 				ImageWidthPx:  800,
 			},

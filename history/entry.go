@@ -3,7 +3,7 @@ package history
 import (
 	"time"
 
-	"github.com/virtualtam/redwall2/submission"
+	"github.com/virtualtam/walric/submission"
 )
 
 type Entry struct {

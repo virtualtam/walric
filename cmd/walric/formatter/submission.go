@@ -5,7 +5,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/virtualtam/redwall2/submission"
+	"github.com/virtualtam/walric/submission"
 )
 
 func FormatSubmissionAsTab(output io.Writer, submission *submission.Submission) *tabwriter.Writer {
@@ -20,7 +20,7 @@ func FormatSubmissionAsTab(output io.Writer, submission *submission.Submission) 
 	fmt.Fprintf(writer, "Image Size\t%d x %d\t\n", submission.ImageWidthPx, submission.ImageHeightPx)
 	fmt.Fprintf(writer, "Filename\t%s\t\n", submission.ImageFilename)
 	fmt.Fprintf(writer, "NSFW\t%t\t\n", submission.ImageNSFW)
-	fmt.Fprintf(writer, "Redwall ID\t%d\t\n", submission.ID)
+	fmt.Fprintf(writer, "Walric ID\t%d\t\n", submission.ID)
 
 	return writer
 }

@@ -1,6 +1,6 @@
 package submission
 
-import "github.com/virtualtam/redwall2/monitor"
+import "github.com/virtualtam/walric/monitor"
 
 type Repository interface {
 	ByID(id int) (*Submission, error)

@@ -1,8 +1,8 @@
-package redwall
+package walric
 
 import (
 	"github.com/vcraescu/go-xrandr"
-	"github.com/virtualtam/redwall2/monitor"
+	"github.com/virtualtam/walric/monitor"
 )
 
 func WallpaperResolution(monitors []xrandr.Monitor) *monitor.Resolution {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/virtualtam/redwall2/monitor"
+	"github.com/virtualtam/walric/monitor"
 )
 
 var _ Repository = &RepositorySQLite{}

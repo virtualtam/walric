@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/virtualtam/redwall2/monitor"
+	"github.com/virtualtam/walric/monitor"
 )
 
 var _ Repository = &validator{}

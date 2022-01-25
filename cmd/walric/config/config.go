@@ -9,27 +9,27 @@ import (
 )
 
 const (
-	databaseFilename string = "redwall.db"
+	databaseFilename string = "walric.db"
 )
 
 type Config struct {
-	Reddit  redditInfo
-	Redwall redwallInfo
+	Reddit redditInfo
+	Walric walricInfo
 }
 
 func (c *Config) DataDir() string {
-	return c.Redwall.DataDir
+	return c.Walric.DataDir
 }
 
 func (c *Config) DatabasePath() string {
-	return filepath.Join(c.Redwall.DataDir, databaseFilename)
+	return filepath.Join(c.Walric.DataDir, databaseFilename)
 }
 
 type redditInfo struct {
 	UserAgent string `toml:"user_agent"`
 }
 
-type redwallInfo struct {
+type walricInfo struct {
 	DataDir         string   `toml:"data_dir"`
 	SubmissionLimit int      `toml:"submission_limit"`
 	TimeFilter      string   `toml:"time_filter"`
@@ -43,7 +43,7 @@ func LoadTOML(configPath string) (*Config, error) {
 			return &Config{}, err
 		}
 
-		configPath = filepath.Join(userHome, ".config", "redwall.toml")
+		configPath = filepath.Join(userHome, ".config", "walric.toml")
 	}
 
 	configBytes, err := os.ReadFile(configPath)

@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/virtualtam/redwall2/cmd/redwall/formatter"
+	"github.com/virtualtam/walric/cmd/walric/formatter"
 )
 
 // NewInfoCommand initializes a CLI command to display information on a given

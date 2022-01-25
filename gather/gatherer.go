@@ -10,8 +10,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
-	"github.com/virtualtam/redwall2/submission"
-	"github.com/virtualtam/redwall2/subreddit"
+	"github.com/virtualtam/walric/submission"
+	"github.com/virtualtam/walric/subreddit"
 )
 
 type Gatherer struct {

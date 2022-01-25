@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/virtualtam/redwall2/migrations"
+	"github.com/virtualtam/walric/migrations"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -35,7 +35,7 @@ func NewMigrateCommand() *cobra.Command {
 		Use:   "migrate",
 		Short: "Initialize database and run migrations",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := os.MkdirAll(redwallConfig.DataDir(), os.ModePerm); err != nil {
+			if err := os.MkdirAll(walricConfig.DataDir(), os.ModePerm); err != nil {
 				cobra.CheckErr(err)
 			}
 
@@ -47,7 +47,7 @@ func NewMigrateCommand() *cobra.Command {
 			migrater, err := migrate.NewWithSourceInstance(
 				"iofs",
 				migrationsSource,
-				fmt.Sprintf("sqlite3://%s", redwallConfig.DatabasePath()),
+				fmt.Sprintf("sqlite3://%s", walricConfig.DatabasePath()),
 			)
 			if err != nil {
 				cobra.CheckErr(err)

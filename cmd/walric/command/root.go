@@ -6,10 +6,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 
-	"github.com/virtualtam/redwall2/cmd/redwall/config"
-	"github.com/virtualtam/redwall2/history"
-	"github.com/virtualtam/redwall2/submission"
-	"github.com/virtualtam/redwall2/subreddit"
+	"github.com/virtualtam/walric/cmd/walric/config"
+	"github.com/virtualtam/walric/history"
+	"github.com/virtualtam/walric/submission"
+	"github.com/virtualtam/walric/subreddit"
 )
 
 const (
@@ -20,7 +20,7 @@ var (
 	configPath string
 	debugMode  bool
 
-	redwallConfig *config.Config
+	walricConfig *config.Config
 
 	historyService    *history.Service
 	submissionService *submission.Service
@@ -30,11 +30,11 @@ var (
 // NewRootCommand initializes the main CLI entrypoint and common command flags.
 func NewRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "redwall",
-		Short: "Redwall",
-		Long: `Redwall, the front wallpaper to your monitor(s)
+		Use:   "walric",
+		Short: "Walric",
+		Long: `Walric, the front wallpaper to your monitor(s)
 
-Redwall helps you manage a collection of curated wallpapers, courtesy of the Reddit community.`,
+Walric helps you manage a collection of curated wallpapers, courtesy of the Reddit community.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if debugMode {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -44,9 +44,9 @@ Redwall helps you manage a collection of curated wallpapers, courtesy of the Red
 			if err != nil {
 				return err
 			}
-			redwallConfig = cfg
+			walricConfig = cfg
 
-			db, err := sqlx.Open("sqlite3", redwallConfig.DatabasePath())
+			db, err := sqlx.Open("sqlite3", walricConfig.DatabasePath())
 			if err != nil {
 				return err
 			}

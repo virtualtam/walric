@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/virtualtam/redwall2/subreddit"
+	"github.com/virtualtam/walric/subreddit"
 )
 
 type Submission struct {
@@ -21,12 +21,12 @@ type Submission struct {
 	Score     int       `db:"score"`
 	Title     string    `db:"title"`
 
-	// Linked image metadata
+	// Attached image metadata
 	ImageDomain string `db:"domain"`
 	ImageURL    string `db:"url"`
 	ImageNSFW   bool   `db:"over_18"`
 
-	// Redwall metadata
+	// Local image metadata
 	ImageFilename string `db:"image_filename"`
 	ImageHeightPx int    `db:"image_height_px"`
 	ImageWidthPx  int    `db:"image_width_px"`

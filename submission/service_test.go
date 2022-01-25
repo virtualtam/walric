@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/virtualtam/redwall2/subreddit"
+	"github.com/virtualtam/walric/subreddit"
 )
 
 func TestServiceByID(t *testing.T) {
