@@ -24,8 +24,12 @@ race10:
 .PHONY: race10
 
 cover:
-	go test -cover ./...
+	go test -coverprofile=coverage.out ./...
 .PHONY: cover
+
+coverhtml: cover
+	go tool cover -html=coverage.out
+.PHONY: coverhtml
 
 build: $(BUILD_DIR)/walric
 
