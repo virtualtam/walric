@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"image"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -35,6 +36,25 @@ func (g *Gatherer) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 		if !maybeImageURL(mediaURL) {
 			log.Debug().Msgf(
 				"%s: submission does not contain an image: %s - %s",
+				post.SubredditName,
+				post.ID,
+				post.Title,
+			)
+			continue
+		}
+
+		// perform a HTTP HEAD request to ensure the URL points to a supported
+		// image file
+		ok, err := isSupportedImageURL(http.DefaultClient, mediaURL)
+
+		if err != nil {
+			log.Error().Err(err).Msgf("failed to retrieve remote file metadata: %s", post.URL)
+			continue
+		}
+
+		if !ok {
+			log.Debug().Msgf(
+				"%s: submission points to a file with an unsupported format: %s - %s",
 				post.SubredditName,
 				post.ID,
 				post.Title,

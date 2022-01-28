@@ -122,3 +122,23 @@ func maybeImageURL(mediaURL *url.URL) bool {
 	// file, eg if the URL does not contain a file extension
 	return true
 }
+
+// isSupportedImageURL performs a HTTP HEAD request to retrieve the Content-Type
+// header for the remote file, and determine whether the type of the remote file
+// is a  supported image format.
+func isSupportedImageURL(client *http.Client, mediaURL *url.URL) (bool, error) {
+	response, err := client.Head(mediaURL.String())
+
+	if err != nil {
+		return false, err
+	}
+
+	contentType := response.Header.Get("Content-Type")
+
+	switch contentType {
+	case "application/octet-stream", "image/jpeg", "image/png":
+		return true, nil
+	}
+
+	return false, nil
+}
