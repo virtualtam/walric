@@ -7,6 +7,7 @@ import (
 
 var _ Repository = &Service{}
 
+// Service handles domain operations for Submission management.
 type Service struct {
 	Repository
 
@@ -97,6 +98,7 @@ func (s *Service) Random(minResolution *monitor.Resolution) (*Submission, error)
 	return submission, err
 }
 
+// NewService creates and initializes a Submission Service.
 func NewService(repository Repository, subredditService *subreddit.Service) *Service {
 	validator := newValidator(repository)
 

@@ -9,6 +9,7 @@ import (
 
 var _ Repository = &RepositorySQLite{}
 
+// RepositorySQLite provides a SQLite3 database persistence layer for Entries.
 type RepositorySQLite struct {
 	db *sqlx.DB
 }
@@ -61,6 +62,8 @@ VALUES (:date, :submission_id)`,
 	return nil
 }
 
+// NewRepositorySQLite initializes and returns a SQLite3 repository to persist
+// and manage history Entries.
 func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
 	return &RepositorySQLite{
 		db: db,

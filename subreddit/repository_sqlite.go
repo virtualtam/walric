@@ -9,6 +9,8 @@ import (
 
 var _ Repository = &RepositorySQLite{}
 
+// RepositorySQLite provides a SQLite3 database persistence layer for
+// Subreddits.
 type RepositorySQLite struct {
 	db *sqlx.DB
 }
@@ -99,6 +101,8 @@ ORDER BY sr.name COLLATE NOCASE
 	return subredditStats, nil
 }
 
+// NewRepositorySQLite initializes and returns a SQLite3 repository to persist
+// and manage Subreddits.
 func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
 	return &RepositorySQLite{
 		db: db,

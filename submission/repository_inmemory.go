@@ -9,6 +9,7 @@ import (
 
 var _ Repository = &RepositoryInMemory{}
 
+// repositoryInMemory provides an in-memory Repository for testing.
 type RepositoryInMemory struct {
 	currentID   int
 	submissions []*Submission

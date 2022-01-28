@@ -11,6 +11,8 @@ import (
 
 var _ Repository = &RepositorySQLite{}
 
+// RepositorySQLite provides a SQLite3 database persistence layer for
+// Submissions.
 type RepositorySQLite struct {
 	db *sqlx.DB
 }

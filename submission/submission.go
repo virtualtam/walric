@@ -7,6 +7,8 @@ import (
 	"github.com/virtualtam/walric/subreddit"
 )
 
+// Submission represents the metadata for a Reddit post with an image
+// attachment, and the metadata for the corresponding local file.
 type Submission struct {
 	ID int `db:"id"`
 
@@ -32,10 +34,12 @@ type Submission struct {
 	ImageWidthPx  int    `db:"image_width_px"`
 }
 
+// PermalinkURL returns the Reddit permalink for this submission's post.
 func (s *Submission) PermalinkURL() string {
 	return fmt.Sprintf("https://reddit.com%s", s.Permalink)
 }
 
+// User returns the Reddit-formatted username for this submission's author.
 func (s *Submission) User() string {
 	return fmt.Sprintf("u/%s", s.Author)
 }

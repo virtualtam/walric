@@ -12,15 +12,19 @@ const (
 	databaseFilename string = "walric.db"
 )
 
+// Config holds the application's configuration.
 type Config struct {
 	Reddit redditInfo
 	Walric walricInfo
 }
 
+// DataDir returns the path to the application's data directory.
 func (c *Config) DataDir() string {
 	return c.Walric.DataDir
 }
 
+// DatabasePath returns the path to the SQLite3 database containing the
+// application's data.
 func (c *Config) DatabasePath() string {
 	return filepath.Join(c.Walric.DataDir, databaseFilename)
 }
@@ -36,6 +40,8 @@ type walricInfo struct {
 	Subreddits      []string `toml:"subreddits"`
 }
 
+// LoadTOML loads the application's configuration from a TOML file and returns
+// an initialized Config.
 func LoadTOML(configPath string) (*Config, error) {
 	if configPath == "" {
 		userHome, err := os.UserHomeDir()

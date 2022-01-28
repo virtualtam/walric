@@ -4,6 +4,7 @@ import "errors"
 
 var _ Repository = &RepositoryInMemory{}
 
+// repositoryInMemory provides an in-memory Repository for testing.
 type RepositoryInMemory struct {
 	currentID  int
 	subreddits []*Subreddit
@@ -46,6 +47,8 @@ func (r *RepositoryInMemory) Create(subreddit *Subreddit) error {
 	return nil
 }
 
+// NewRepositoryInMemory initializes and returns an in-memory repository for
+// testing.
 func NewRepositoryInMemory(subreddits []*Subreddit) *RepositoryInMemory {
 	return &RepositoryInMemory{
 		currentID:  len(subreddits) + 1,

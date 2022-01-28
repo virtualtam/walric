@@ -8,6 +8,7 @@ import (
 
 var _ Repository = &Service{}
 
+// Service handles domain operations for Entry management.
 type Service struct {
 	Repository
 
@@ -59,6 +60,7 @@ func (s *Service) Save(submission *submission.Submission) error {
 	return s.Create(entry)
 }
 
+// NewService creates and initializes an Entry Service.
 func NewService(repository Repository, submissionService *submission.Service) *Service {
 	validator := newValidator(repository)
 

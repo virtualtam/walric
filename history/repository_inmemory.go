@@ -2,6 +2,7 @@ package history
 
 var _ Repository = &repositoryInMemory{}
 
+// repositoryInMemory provides an in-memory Repository for testing.
 type repositoryInMemory struct {
 	entries []*Entry
 }

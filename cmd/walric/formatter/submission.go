@@ -8,6 +8,8 @@ import (
 	"github.com/virtualtam/walric/submission"
 )
 
+// FormatSubmissionAsTab returns a tabwriter.Writer filled with a Submission's
+// metadata.
 func FormatSubmissionAsTab(output io.Writer, submission *submission.Submission) *tabwriter.Writer {
 	writer := tabwriter.NewWriter(output, 0, 4, 2, ' ', 0)
 

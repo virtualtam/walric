@@ -6,6 +6,8 @@ import (
 	"github.com/vcraescu/go-xrandr"
 )
 
+// ConnectedMonitors returns the list of connected (active) monitors for a given
+// XRandR screen identifier.
 func ConnectedMonitors(xRandRScreenNo int) ([]xrandr.Monitor, error) {
 	screens, err := xrandr.GetScreens()
 	if err != nil {
@@ -33,6 +35,8 @@ func ConnectedMonitors(xRandRScreenNo int) ([]xrandr.Monitor, error) {
 	return []xrandr.Monitor{}, errors.New("Screen not found")
 }
 
+// MaxHeight returns the maximum height (in pixels) of a list of XRandR
+// monitors.
 func MaxHeight(monitors []xrandr.Monitor) float32 {
 	var maxHeight float32
 
@@ -45,6 +49,8 @@ func MaxHeight(monitors []xrandr.Monitor) float32 {
 	return maxHeight
 }
 
+// MaxWidth returns the maximum width (in pixels) of a list of XRandR
+// monitors.
 func MaxWidth(monitors []xrandr.Monitor) float32 {
 	var maxWidth float32
 
