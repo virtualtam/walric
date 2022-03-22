@@ -7,8 +7,6 @@ import (
 	"github.com/virtualtam/walric/monitor"
 )
 
-var _ Repository = &validator{}
-
 type validationFn func(*Submission) error
 
 type validator struct {

@@ -6,17 +6,15 @@ import (
 	"github.com/virtualtam/walric/submission"
 )
 
-var _ Repository = &Service{}
-
 // Service handles domain operations for Entry management.
 type Service struct {
-	Repository
+	*validator
 
 	submissionService *submission.Service
 }
 
 func (s *Service) All() ([]*Entry, error) {
-	entries, err := s.Repository.All()
+	entries, err := s.validator.All()
 	if err != nil {
 		return []*Entry{}, err
 	}
@@ -34,7 +32,7 @@ func (s *Service) All() ([]*Entry, error) {
 }
 
 func (s *Service) Current() (*Entry, error) {
-	entry, err := s.Repository.Current()
+	entry, err := s.validator.Current()
 	if err != nil {
 		return &Entry{}, err
 	}
@@ -65,7 +63,7 @@ func NewService(repository Repository, submissionService *submission.Service) *S
 	validator := newValidator(repository)
 
 	return &Service{
-		Repository:        validator,
+		validator:         validator,
 		submissionService: submissionService,
 	}
 }

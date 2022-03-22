@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-var _ Repository = &validator{}
-
 type validationFn func(subreddit *Subreddit) error
 
 // // validator provides a normalization and validation layer for Subreddit

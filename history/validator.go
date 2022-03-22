@@ -1,7 +1,5 @@
 package history
 
-var _ Repository = &validator{}
-
 type validationFn func(entry *Entry) error
 
 // validator provides a normalization and validation layer for history Entry

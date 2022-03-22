@@ -5,17 +5,15 @@ import (
 	"github.com/virtualtam/walric/subreddit"
 )
 
-var _ Repository = &Service{}
-
 // Service handles domain operations for Submission management.
 type Service struct {
-	Repository
+	*validator
 
 	subredditService *subreddit.Service
 }
 
 func (s *Service) ByID(id int) (*Submission, error) {
-	submission, err := s.Repository.ByID(id)
+	submission, err := s.validator.ByID(id)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -31,7 +29,7 @@ func (s *Service) ByID(id int) (*Submission, error) {
 }
 
 func (s *Service) ByPostID(postID string) (*Submission, error) {
-	submission, err := s.Repository.ByPostID(postID)
+	submission, err := s.validator.ByPostID(postID)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -47,7 +45,7 @@ func (s *Service) ByPostID(postID string) (*Submission, error) {
 }
 
 func (s *Service) Search(text string) ([]*Submission, error) {
-	submissions, err := s.Repository.Search(text)
+	submissions, err := s.validator.Search(text)
 	if err != nil {
 		return []*Submission{}, err
 	}
@@ -65,7 +63,7 @@ func (s *Service) Search(text string) ([]*Submission, error) {
 }
 
 func (s *Service) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
-	submissions, err := s.Repository.ByMinResolution(minResolution)
+	submissions, err := s.validator.ByMinResolution(minResolution)
 	if err != nil {
 		return []*Submission{}, err
 	}
@@ -83,7 +81,7 @@ func (s *Service) ByMinResolution(minResolution *monitor.Resolution) ([]*Submiss
 }
 
 func (s *Service) Random(minResolution *monitor.Resolution) (*Submission, error) {
-	submission, err := s.Repository.Random(minResolution)
+	submission, err := s.validator.Random(minResolution)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -103,7 +101,7 @@ func NewService(repository Repository, subredditService *subreddit.Service) *Ser
 	validator := newValidator(repository)
 
 	return &Service{
-		Repository:       validator,
+		validator:        validator,
 		subredditService: subredditService,
 	}
 }
