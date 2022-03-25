@@ -3,8 +3,8 @@ package command
 import (
 	"context"
 
+	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/spf13/cobra"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"github.com/virtualtam/walric/gather"
 )
 
@@ -15,14 +15,19 @@ func NewGatherCommand() *cobra.Command {
 		Use:   "gather",
 		Short: "Gather media from top Reddit submissions",
 		Run: func(cmd *cobra.Command, args []string) {
-			redditReadOnlyClient, err := reddit.NewReadonlyClient(
+			redditClient, err := reddit.NewClient(
+				reddit.Credentials{
+					ID:     walricConfig.Reddit.ClientID,
+					Secret: walricConfig.Reddit.ClientSecret,
+				},
+				reddit.WithApplicationOnlyOAuth(true),
 				reddit.WithUserAgent(walricConfig.Reddit.UserAgent),
 			)
 			if err != nil {
 				cobra.CheckErr(err)
 			}
 
-			gatherer := gather.NewGatherer(redditReadOnlyClient, submissionService, subredditService, walricConfig.Walric.DataDir)
+			gatherer := gather.NewGatherer(redditClient, submissionService, subredditService, walricConfig.Walric.DataDir)
 
 			listPostOptions := &reddit.ListPostOptions{
 				ListOptions: reddit.ListOptions{Limit: walricConfig.Walric.SubmissionLimit},

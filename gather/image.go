@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/sethjones/go-reddit/v2/reddit"
 )
 
 type postImage struct {

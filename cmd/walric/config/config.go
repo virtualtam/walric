@@ -30,7 +30,9 @@ func (c *Config) DatabasePath() string {
 }
 
 type redditInfo struct {
-	UserAgent string `toml:"user_agent"`
+	ClientID     string `toml:"client_id"`
+	ClientSecret string `toml:"client_secret"`
+	UserAgent    string `toml:"user_agent"`
 }
 
 type walricInfo struct {

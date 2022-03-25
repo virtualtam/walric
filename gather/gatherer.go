@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/virtualtam/walric/submission"
 	"github.com/virtualtam/walric/subreddit"
 )

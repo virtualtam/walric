@@ -8,8 +8,8 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1
+	github.com/sethjones/go-reddit/v2 v2.0.1-0.20220211043233-9af4e19ee575
 	github.com/spf13/cobra v1.4.0
-	github.com/vartanbeno/go-reddit/v2 v2.0.1
 	github.com/vcraescu/go-xrandr v0.0.0-20201121120806-4e66d7925a73
 )
 
