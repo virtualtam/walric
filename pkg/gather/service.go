@@ -15,14 +15,23 @@ import (
 	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
-type Gatherer struct {
+type Service struct {
 	client            *reddit.Client
 	submissionService *submission.Service
 	subredditService  *subreddit.Service
 	dataDir           string
 }
 
-func (g *Gatherer) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
+func NewService(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string) *Service {
+	return &Service{
+		client:            client,
+		submissionService: submissionService,
+		subredditService:  subredditService,
+		dataDir:           dataDir,
+	}
+}
+
+func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 	var imagePosts []*reddit.Post
 
 	for _, post := range posts {
@@ -63,7 +72,7 @@ func (g *Gatherer) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 		}
 
 		// check whether the post was already saved
-		_, err = g.submissionService.ByPostID(post.ID)
+		_, err = s.submissionService.ByPostID(post.ID)
 
 		if err == nil {
 			log.Debug().Msgf(
@@ -86,7 +95,7 @@ func (g *Gatherer) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 	return imagePosts, nil
 }
 
-func (g *Gatherer) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subredditName string, subredditDir string, post *reddit.Post) error {
+func (s *Service) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subredditName string, subredditDir string, post *reddit.Post) error {
 	postImage, err := newPostImage(subredditDir, post)
 	if err != nil {
 		log.Error().Err(err).Msgf("%s: failed to fetch image metadata from URL: %s", subredditName, post.URL)
@@ -138,7 +147,7 @@ func (g *Gatherer) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subre
 		ImageWidthPx:  postImage.WidthPx,
 	}
 
-	if err := g.submissionService.Create(dbSubmission); err != nil {
+	if err := s.submissionService.Create(dbSubmission); err != nil {
 		log.Error().Err(err).Msgf("%s: failed to create submission entry: %s - %s", subredditName, post.ID, post.Title)
 		return err
 	}
@@ -147,25 +156,25 @@ func (g *Gatherer) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subre
 	return nil
 }
 
-func (g *Gatherer) gatherImageSubmissions(ctx context.Context, subredditName string, posts []*reddit.Post) error {
-	subredditDir := filepath.Join(g.dataDir, subredditName)
+func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName string, posts []*reddit.Post) error {
+	subredditDir := filepath.Join(s.dataDir, subredditName)
 	if err := os.MkdirAll(subredditDir, os.ModePerm); err != nil {
 		log.Error().Err(err).Msgf("failed to create directory: %s", subredditDir)
 		return err
 	}
 
-	dbSubreddit, err := g.subredditService.ByName(subredditName)
+	dbSubreddit, err := s.subredditService.ByName(subredditName)
 
 	if errors.Is(err, subreddit.ErrNotFound) {
 		log.Info().Msgf("%s: save subreddit information to database", subredditName)
 
 		dbSubreddit = &subreddit.Subreddit{Name: subredditName}
-		if err = g.subredditService.Create(dbSubreddit); err != nil {
+		if err = s.subredditService.Create(dbSubreddit); err != nil {
 			log.Error().Err(err).Msgf("%s: failed to create database entry", subredditName)
 			return err
 		}
 
-		dbSubreddit, err = g.subredditService.ByName(subredditName)
+		dbSubreddit, err = s.subredditService.ByName(subredditName)
 		if err != nil {
 			log.Error().Err(err).Msg("database: failed to retrieve subreddit")
 			return err
@@ -176,7 +185,7 @@ func (g *Gatherer) gatherImageSubmissions(ctx context.Context, subredditName str
 	}
 
 	for _, post := range posts {
-		if err := g.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, post); err != nil {
+		if err := s.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, post); err != nil {
 			return err
 		}
 	}
@@ -184,9 +193,9 @@ func (g *Gatherer) gatherImageSubmissions(ctx context.Context, subredditName str
 	return nil
 }
 
-func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames []string, listPostOptions *reddit.ListPostOptions) error {
+func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames []string, listPostOptions *reddit.ListPostOptions) error {
 	for _, subredditName := range subredditNames {
-		topPosts, _, err := g.client.Subreddit.TopPosts(
+		topPosts, _, err := s.client.Subreddit.TopPosts(
 			ctx,
 			subredditName,
 			listPostOptions,
@@ -209,7 +218,7 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 			listPostOptions.Time,
 		)
 
-		posts, err := g.filterPosts(topPosts)
+		posts, err := s.filterPosts(topPosts)
 		if err != nil {
 			log.Error().Err(err).Msgf("%s: failed to filter posts", subredditName)
 			return err
@@ -227,19 +236,10 @@ func (g *Gatherer) GatherTopImageSubmissions(ctx context.Context, subredditNames
 			listPostOptions.Time,
 		)
 
-		if err := g.gatherImageSubmissions(ctx, subredditName, posts); err != nil {
+		if err := s.gatherImageSubmissions(ctx, subredditName, posts); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func NewGatherer(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string) *Gatherer {
-	return &Gatherer{
-		client:            client,
-		submissionService: submissionService,
-		subredditService:  subredditService,
-		dataDir:           dataDir,
-	}
 }

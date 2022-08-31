@@ -27,7 +27,7 @@ func NewGatherCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			gatherer := gather.NewGatherer(redditClient, submissionService, subredditService, walricConfig.Walric.DataDir)
+			gatherer := gather.NewService(redditClient, submissionService, subredditService, walricConfig.Walric.DataDir)
 
 			listPostOptions := &reddit.ListPostOptions{
 				ListOptions: reddit.ListOptions{Limit: walricConfig.Walric.SubmissionLimit},
