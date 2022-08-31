@@ -15,7 +15,7 @@ type RepositoryInMemory struct {
 	submissions []*Submission
 }
 
-func (r *RepositoryInMemory) ByID(id int) (*Submission, error) {
+func (r *RepositoryInMemory) SubmissionGetByID(id int) (*Submission, error) {
 	for _, submission := range r.submissions {
 		if submission.ID == id {
 			return submission, nil
@@ -25,7 +25,7 @@ func (r *RepositoryInMemory) ByID(id int) (*Submission, error) {
 	return &Submission{}, ErrNotFound
 }
 
-func (r *RepositoryInMemory) ByPostID(postID string) (*Submission, error) {
+func (r *RepositoryInMemory) SubmissionGetByPostID(postID string) (*Submission, error) {
 	for _, submission := range r.submissions {
 		if submission.PostID == postID {
 			return submission, nil
@@ -35,7 +35,7 @@ func (r *RepositoryInMemory) ByPostID(postID string) (*Submission, error) {
 	return &Submission{}, ErrNotFound
 }
 
-func (r *RepositoryInMemory) Search(text string) ([]*Submission, error) {
+func (r *RepositoryInMemory) SubmissionSearch(text string) ([]*Submission, error) {
 	results := []*Submission{}
 
 	for _, submission := range r.submissions {
@@ -47,7 +47,7 @@ func (r *RepositoryInMemory) Search(text string) ([]*Submission, error) {
 	return results, nil
 }
 
-func (r *RepositoryInMemory) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
+func (r *RepositoryInMemory) SubmissionGetByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
 	candidates := []*Submission{}
 	for _, submission := range r.submissions {
 		if submission.ImageHeightPx >= minResolution.HeightPx && submission.ImageWidthPx >= minResolution.WidthPx {
@@ -58,12 +58,12 @@ func (r *RepositoryInMemory) ByMinResolution(minResolution *monitor.Resolution) 
 	return candidates, nil
 }
 
-func (r *RepositoryInMemory) Random(minResolution *monitor.Resolution) (*Submission, error) {
+func (r *RepositoryInMemory) SubmissionGetRandom(minResolution *monitor.Resolution) (*Submission, error) {
 	if len(r.submissions) == 0 {
 		return &Submission{}, ErrNotFound
 	}
 
-	candidates, err := r.ByMinResolution(minResolution)
+	candidates, err := r.SubmissionGetByMinResolution(minResolution)
 	if err != nil {
 		return &Submission{}, nil
 	}
@@ -77,7 +77,7 @@ func (r *RepositoryInMemory) Random(minResolution *monitor.Resolution) (*Submiss
 	return candidates[index], nil
 }
 
-func (r *RepositoryInMemory) Create(submission *Submission) error {
+func (r *RepositoryInMemory) SubmissionCreate(submission *Submission) error {
 	submission.ID = r.currentID
 	r.currentID++
 

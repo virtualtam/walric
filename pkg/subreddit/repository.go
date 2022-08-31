@@ -3,18 +3,18 @@ package subreddit
 // Repository defines the basic operations available to access and persist
 // Subreddits.
 type Repository interface {
-	// All returns all persisted Subreddits.
-	All() ([]*Subreddit, error)
+	// SubredditGetAll returns all persisted Subreddits.
+	SubredditGetAll() ([]*Subreddit, error)
 
-	// Stats returns the aggregated usage statistics for all Subreddits.
-	Stats() ([]SubredditStats, error)
+	// SubredditGetStats returns the aggregated usage statistics for all Subreddits.
+	SubredditGetStats() ([]SubredditStats, error)
 
-	// ByID returns the Subreddit for a given ID.
-	ByID(id int) (*Subreddit, error)
+	// SubredditGetByID returns the Subreddit for a given ID.
+	SubredditGetByID(id int) (*Subreddit, error)
 
-	// ByName returns the Subreddit for a given Name.
-	ByName(name string) (*Subreddit, error)
+	// SubredditGetByName returns the Subreddit for a given Name.
+	SubredditGetByName(name string) (*Subreddit, error)
 
-	// Create creates and persists a Subreddit.
-	Create(subreddit *Subreddit) error
+	// SubredditCreate creates and persists a Subreddit.
+	SubredditCreate(subreddit *Subreddit) error
 }

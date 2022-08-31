@@ -8,6 +8,7 @@ import (
 
 	"github.com/virtualtam/walric/cmd/walric/config"
 	"github.com/virtualtam/walric/pkg/history"
+	"github.com/virtualtam/walric/pkg/storage/sqlite3"
 	"github.com/virtualtam/walric/pkg/submission"
 	"github.com/virtualtam/walric/pkg/subreddit"
 )
@@ -51,14 +52,11 @@ Walric helps you manage a collection of curated wallpapers, courtesy of the Redd
 				return err
 			}
 
-			subredditRepository := subreddit.NewRepositorySQLite(db)
-			subredditService = subreddit.NewService(subredditRepository)
+			sqliteRepository := sqlite3.NewRepositorySQLite(db)
 
-			submissionRepository := submission.NewRepositorySQLite(db)
-			submissionService = submission.NewService(submissionRepository, subredditService)
-
-			historyRepository := history.NewRepositorySQLite(db)
-			historyService = history.NewService(historyRepository, submissionService)
+			subredditService = subreddit.NewService(sqliteRepository)
+			submissionService = submission.NewService(sqliteRepository, subredditService)
+			historyService = history.NewService(sqliteRepository, submissionService)
 
 			return nil
 		},

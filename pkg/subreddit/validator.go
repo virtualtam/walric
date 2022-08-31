@@ -82,7 +82,7 @@ func (v *validator) ByID(id int) (*Subreddit, error) {
 		return &Subreddit{}, err
 	}
 
-	return v.Repository.ByID(id)
+	return v.Repository.SubredditGetByID(id)
 }
 
 func (v *validator) ByName(name string) (*Subreddit, error) {
@@ -97,7 +97,7 @@ func (v *validator) ByName(name string) (*Subreddit, error) {
 		return &Subreddit{}, err
 	}
 
-	return v.Repository.ByName(subreddit.Name)
+	return v.Repository.SubredditGetByName(subreddit.Name)
 }
 
 func (v *validator) Create(subreddit *Subreddit) error {
@@ -112,7 +112,7 @@ func (v *validator) Create(subreddit *Subreddit) error {
 		return err
 	}
 
-	return v.Repository.Create(subreddit)
+	return v.Repository.SubredditCreate(subreddit)
 }
 
 func newValidator(repository Repository) *validator {

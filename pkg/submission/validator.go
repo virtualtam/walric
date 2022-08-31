@@ -101,7 +101,7 @@ func (v *validator) ByID(id int) (*Submission, error) {
 		return &Submission{}, err
 	}
 
-	return v.Repository.ByID(id)
+	return v.Repository.SubmissionGetByID(id)
 }
 
 func (v *validator) ByPostID(postID string) (*Submission, error) {
@@ -117,7 +117,7 @@ func (v *validator) ByPostID(postID string) (*Submission, error) {
 		return &Submission{}, err
 	}
 
-	return v.Repository.ByPostID(postID)
+	return v.Repository.SubmissionGetByPostID(postID)
 }
 
 func (v *validator) Search(text string) ([]*Submission, error) {
@@ -126,7 +126,7 @@ func (v *validator) Search(text string) ([]*Submission, error) {
 		return []*Submission{}, ErrSearchTextEmpty
 	}
 
-	return v.Repository.Search(text)
+	return v.Repository.SubmissionSearch(text)
 }
 
 func (v *validator) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
@@ -134,7 +134,7 @@ func (v *validator) ByMinResolution(minResolution *monitor.Resolution) ([]*Submi
 		return []*Submission{}, ErrResolutionInvalid
 	}
 
-	return v.Repository.ByMinResolution(minResolution)
+	return v.Repository.SubmissionGetByMinResolution(minResolution)
 }
 
 func (v *validator) Random(minResolution *monitor.Resolution) (*Submission, error) {
@@ -142,7 +142,7 @@ func (v *validator) Random(minResolution *monitor.Resolution) (*Submission, erro
 		return &Submission{}, ErrResolutionInvalid
 	}
 
-	return v.Repository.Random(minResolution)
+	return v.Repository.SubmissionGetRandom(minResolution)
 }
 
 func (v *validator) Create(submission *Submission) error {
@@ -161,7 +161,7 @@ func (v *validator) Create(submission *Submission) error {
 		return err
 	}
 
-	return v.Repository.Create(submission)
+	return v.Repository.SubmissionCreate(submission)
 }
 
 func newValidator(repository Repository) *validator {

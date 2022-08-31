@@ -7,11 +7,11 @@ type repositoryInMemory struct {
 	entries []*Entry
 }
 
-func (r *repositoryInMemory) All() ([]*Entry, error) {
+func (r *repositoryInMemory) HistoryGetAll() ([]*Entry, error) {
 	return r.entries, nil
 }
 
-func (r *repositoryInMemory) Current() (*Entry, error) {
+func (r *repositoryInMemory) HistoryGetCurrent() (*Entry, error) {
 	if len(r.entries) == 0 {
 		return &Entry{}, ErrNotFound
 	}
@@ -19,7 +19,7 @@ func (r *repositoryInMemory) Current() (*Entry, error) {
 	return r.entries[len(r.entries)-1], nil
 }
 
-func (r *repositoryInMemory) Create(entry *Entry) error {
+func (r *repositoryInMemory) HistoryCreate(entry *Entry) error {
 	r.entries = append(r.entries, entry)
 	return nil
 }

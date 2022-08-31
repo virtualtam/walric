@@ -14,7 +14,7 @@ type Service struct {
 }
 
 func (s *Service) All() ([]*Entry, error) {
-	entries, err := s.validator.All()
+	entries, err := s.validator.HistoryGetAll()
 	if err != nil {
 		return []*Entry{}, err
 	}
@@ -32,7 +32,7 @@ func (s *Service) All() ([]*Entry, error) {
 }
 
 func (s *Service) Current() (*Entry, error) {
-	entry, err := s.validator.Current()
+	entry, err := s.validator.HistoryGetCurrent()
 	if err != nil {
 		return &Entry{}, err
 	}

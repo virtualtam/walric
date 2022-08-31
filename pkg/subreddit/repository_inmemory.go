@@ -10,15 +10,15 @@ type RepositoryInMemory struct {
 	subreddits []*Subreddit
 }
 
-func (r *RepositoryInMemory) All() ([]*Subreddit, error) {
+func (r *RepositoryInMemory) SubredditGetAll() ([]*Subreddit, error) {
 	return r.subreddits, nil
 }
 
-func (r *RepositoryInMemory) Stats() ([]SubredditStats, error) {
+func (r *RepositoryInMemory) SubredditGetStats() ([]SubredditStats, error) {
 	return []SubredditStats{}, errors.New("not implemented")
 }
 
-func (r *RepositoryInMemory) ByID(id int) (*Subreddit, error) {
+func (r *RepositoryInMemory) SubredditGetByID(id int) (*Subreddit, error) {
 	for _, subreddit := range r.subreddits {
 		if subreddit.ID == id {
 			return subreddit, nil
@@ -28,7 +28,7 @@ func (r *RepositoryInMemory) ByID(id int) (*Subreddit, error) {
 	return &Subreddit{}, ErrNotFound
 }
 
-func (r *RepositoryInMemory) ByName(name string) (*Subreddit, error) {
+func (r *RepositoryInMemory) SubredditGetByName(name string) (*Subreddit, error) {
 	for _, subreddit := range r.subreddits {
 		if subreddit.Name == name {
 			return subreddit, nil
@@ -38,7 +38,7 @@ func (r *RepositoryInMemory) ByName(name string) (*Subreddit, error) {
 	return &Subreddit{}, ErrNotFound
 }
 
-func (r *RepositoryInMemory) Create(subreddit *Subreddit) error {
+func (r *RepositoryInMemory) SubredditCreate(subreddit *Subreddit) error {
 	subreddit.ID = r.currentID
 	r.currentID++
 

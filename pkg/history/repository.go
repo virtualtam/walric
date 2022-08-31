@@ -3,12 +3,12 @@ package history
 // Repository defines the basic operations available to access and persist
 // history Entries.
 type Repository interface {
-	// All returns all persisted Entries.
-	All() ([]*Entry, error)
+	// HistoryGetAll returns all persisted Entries.
+	HistoryGetAll() ([]*Entry, error)
 
-	// Current returns the last chosen Entry.
-	Current() (*Entry, error)
+	// HistoryGetCurrent returns the last chosen Entry.
+	HistoryGetCurrent() (*Entry, error)
 
-	// Create creates and persists an Entry.
-	Create(entry *Entry) error
+	// HistoryCreate creates and persists an Entry.
+	HistoryCreate(entry *Entry) error
 }

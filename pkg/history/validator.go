@@ -35,7 +35,7 @@ func (v *validator) Create(entry *Entry) error {
 		return err
 	}
 
-	return v.Repository.Create(entry)
+	return v.Repository.HistoryCreate(entry)
 }
 
 func newValidator(repository Repository) *validator {

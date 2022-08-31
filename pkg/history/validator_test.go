@@ -83,7 +83,7 @@ func TestValidatorCreate(t *testing.T) {
 				return
 			}
 
-			entry, err := repository.Current()
+			entry, err := repository.HistoryGetCurrent()
 			if err != nil {
 				t.Errorf("failed to retrieve entry: %q", err)
 				return
