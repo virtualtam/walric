@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/virtualtam/walric/monitor"
+	"github.com/virtualtam/walric/pkg/monitor"
 )
 
 func TestValidatorByID(t *testing.T) {

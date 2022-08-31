@@ -3,7 +3,7 @@ package history
 import (
 	"time"
 
-	"github.com/virtualtam/walric/submission"
+	"github.com/virtualtam/walric/pkg/submission"
 )
 
 // Service handles domain operations for Entry management.

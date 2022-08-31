@@ -5,7 +5,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/virtualtam/walric/submission"
+	"github.com/virtualtam/walric/pkg/submission"
 )
 
 // FormatSubmissionAsTab returns a tabwriter.Writer filled with a Submission's

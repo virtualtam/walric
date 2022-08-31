@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/virtualtam/walric/cmd/walric/config"
-	"github.com/virtualtam/walric/history"
-	"github.com/virtualtam/walric/submission"
-	"github.com/virtualtam/walric/subreddit"
+	"github.com/virtualtam/walric/pkg/history"
+	"github.com/virtualtam/walric/pkg/submission"
+	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 const (

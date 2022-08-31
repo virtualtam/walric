@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/virtualtam/walric/subreddit"
+	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 // Submission represents the metadata for a Reddit post with an image

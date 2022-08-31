@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/virtualtam/walric/monitor"
+	"github.com/virtualtam/walric/pkg/monitor"
 )
 
 type validationFn func(*Submission) error

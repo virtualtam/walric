@@ -5,7 +5,7 @@ import (
 
 	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/spf13/cobra"
-	"github.com/virtualtam/walric/gather"
+	"github.com/virtualtam/walric/pkg/gather"
 )
 
 // NewGatherCommand initializes a CLI command to gather top submissions from the

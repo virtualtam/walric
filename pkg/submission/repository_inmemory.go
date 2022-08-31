@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/virtualtam/walric/monitor"
+	"github.com/virtualtam/walric/pkg/monitor"
 )
 
 var _ Repository = &RepositoryInMemory{}

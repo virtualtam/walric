@@ -11,8 +11,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sethjones/go-reddit/v2/reddit"
-	"github.com/virtualtam/walric/submission"
-	"github.com/virtualtam/walric/subreddit"
+	"github.com/virtualtam/walric/pkg/submission"
+	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 type Gatherer struct {

@@ -1,6 +1,6 @@
 package submission
 
-import "github.com/virtualtam/walric/monitor"
+import "github.com/virtualtam/walric/pkg/monitor"
 
 // Repository defines the basic operations available to access and persist
 // Reddit Submissions.

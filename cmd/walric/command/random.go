@@ -4,9 +4,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	walric "github.com/virtualtam/walric"
 	"github.com/virtualtam/walric/cmd/walric/formatter"
-	"github.com/virtualtam/walric/monitor"
+	"github.com/virtualtam/walric/pkg/monitor"
 )
 
 // NewRandomCommand initializes a CLI command to select a random submission
@@ -21,7 +20,7 @@ func NewRandomCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			wallpaperResolution := walric.WallpaperResolution(monitors)
+			wallpaperResolution := monitor.WallpaperResolution(monitors)
 
 			submission, err := submissionService.Random(wallpaperResolution)
 			if err != nil {

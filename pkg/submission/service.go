@@ -1,8 +1,8 @@
 package submission
 
 import (
-	"github.com/virtualtam/walric/monitor"
-	"github.com/virtualtam/walric/subreddit"
+	"github.com/virtualtam/walric/pkg/monitor"
+	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 // Service handles domain operations for Submission management.

@@ -6,8 +6,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	walric "github.com/virtualtam/walric"
-	"github.com/virtualtam/walric/monitor"
+	"github.com/virtualtam/walric/pkg/monitor"
 )
 
 const (
@@ -30,7 +29,7 @@ func NewListCandidatesCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			wallpaperResolution := walric.WallpaperResolution(monitors)
+			wallpaperResolution := monitor.WallpaperResolution(monitors)
 
 			submissions, err := submissionService.ByMinResolution(wallpaperResolution)
 			if err != nil {
