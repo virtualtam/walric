@@ -163,25 +163,9 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 		return err
 	}
 
-	dbSubreddit, err := s.subredditService.ByName(subredditName)
-
-	if errors.Is(err, subreddit.ErrNotFound) {
-		log.Info().Msgf("%s: save subreddit information to database", subredditName)
-
-		dbSubreddit = &subreddit.Subreddit{Name: subredditName}
-		if err = s.subredditService.Create(dbSubreddit); err != nil {
-			log.Error().Err(err).Msgf("%s: failed to create database entry", subredditName)
-			return err
-		}
-
-		dbSubreddit, err = s.subredditService.ByName(subredditName)
-		if err != nil {
-			log.Error().Err(err).Msg("database: failed to retrieve subreddit")
-			return err
-		}
-	} else if err != nil {
-		log.Error().Err(err).Msg("database: failed to query subreddit information")
-		return err
+	dbSubreddit, err := s.subredditService.GetOrCreateByName(subredditName)
+	if err != nil {
+		log.Error().Err(err).Msgf("%s: failed to query database", subredditName)
 	}
 
 	for _, post := range posts {
