@@ -20,14 +20,16 @@ type Service struct {
 	submissionService *submission.Service
 	subredditService  *subreddit.Service
 	dataDir           string
+	listPostOptions   *reddit.ListPostOptions
 }
 
-func NewService(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string) *Service {
+func NewService(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string, listPostOptions *reddit.ListPostOptions) *Service {
 	return &Service{
 		client:            client,
 		submissionService: submissionService,
 		subredditService:  subredditService,
 		dataDir:           dataDir,
+		listPostOptions:   listPostOptions,
 	}
 }
 
@@ -177,20 +179,20 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 	return nil
 }
 
-func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames []string, listPostOptions *reddit.ListPostOptions) error {
+func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames []string) error {
 	for _, subredditName := range subredditNames {
 		topPosts, _, err := s.client.Subreddit.TopPosts(
 			ctx,
 			subredditName,
-			listPostOptions,
+			s.listPostOptions,
 		)
 
 		if err != nil {
 			log.Error().Err(err).Msgf(
 				"%s: failed to retrieve top %d posts for the last %s",
 				subredditName,
-				listPostOptions.Limit,
-				listPostOptions.Time,
+				s.listPostOptions.Limit,
+				s.listPostOptions.Time,
 			)
 			return err
 		}
@@ -199,7 +201,7 @@ func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames 
 			"%s: found %d top posts for the last %s",
 			subredditName,
 			len(topPosts),
-			listPostOptions.Time,
+			s.listPostOptions.Time,
 		)
 
 		posts, err := s.filterPosts(topPosts)
@@ -217,7 +219,7 @@ func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames 
 			"%s: found %d new posts containing images for the last %s",
 			subredditName,
 			len(posts),
-			listPostOptions.Time,
+			s.listPostOptions.Time,
 		)
 
 		if err := s.gatherImageSubmissions(ctx, subredditName, posts); err != nil {

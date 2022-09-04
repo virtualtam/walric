@@ -27,16 +27,16 @@ func NewGatherCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			gatherer := gather.NewService(redditClient, submissionService, subredditService, walricConfig.Walric.DataDir)
-
 			listPostOptions := &reddit.ListPostOptions{
 				ListOptions: reddit.ListOptions{Limit: walricConfig.Walric.SubmissionLimit},
 				Time:        walricConfig.Walric.TimeFilter,
 			}
 
+			gatherService := gather.NewService(redditClient, submissionService, subredditService, walricConfig.Walric.DataDir, listPostOptions)
+
 			ctx := context.Background()
 
-			err = gatherer.GatherTopImageSubmissions(ctx, walricConfig.Walric.Subreddits, listPostOptions)
+			err = gatherService.GatherTopImageSubmissions(ctx, walricConfig.Walric.Subreddits)
 			if err != nil {
 				cobra.CheckErr(err)
 			}
