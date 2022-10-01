@@ -15,6 +15,7 @@ import (
 	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
+// Service handles domain operations for gathering image files from Reddit.
 type Service struct {
 	client            *reddit.Client
 	submissionService *submission.Service
@@ -23,6 +24,7 @@ type Service struct {
 	listPostOptions   *reddit.ListPostOptions
 }
 
+// NewService creates and initializes a new Service.
 func NewService(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string, listPostOptions *reddit.ListPostOptions) *Service {
 	return &Service{
 		client:            client,
@@ -54,6 +56,24 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 			continue
 		}
 
+		// check whether the post was already saved
+		_, err = s.submissionService.ByPostID(post.ID)
+
+		if err == nil {
+			log.Debug().Msgf(
+				"%s: submission already saved: %s - %s",
+				post.SubredditName,
+				post.ID,
+				post.Title,
+			)
+			continue
+		}
+
+		if err != submission.ErrNotFound {
+			log.Error().Err(err).Msgf("database: failed to query submission information")
+			return []*reddit.Post{}, err
+		}
+
 		// perform a HTTP HEAD request to ensure the URL points to a supported
 		// image file
 		ok, err := isSupportedImageURL(http.DefaultClient, mediaURL)
@@ -71,24 +91,6 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 				post.Title,
 			)
 			continue
-		}
-
-		// check whether the post was already saved
-		_, err = s.submissionService.ByPostID(post.ID)
-
-		if err == nil {
-			log.Debug().Msgf(
-				"%s: submission already saved: %s - %s",
-				post.SubredditName,
-				post.ID,
-				post.Title,
-			)
-			continue
-		}
-
-		if err != submission.ErrNotFound {
-			log.Error().Err(err).Msgf("database: failed to query submission information")
-			return []*reddit.Post{}, err
 		}
 
 		imagePosts = append(imagePosts, post)
@@ -109,7 +111,7 @@ func (s *Service) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subred
 		return err
 	}
 
-	err = postImage.UpdateResolution()
+	err = postImage.GetResolutionFromFile()
 	if errors.Is(err, image.ErrFormat) {
 		log.Warn().Msgf("%s: unknown or unsupported image file format: %s", subredditName, postImage.filePath)
 
@@ -179,6 +181,8 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 	return nil
 }
 
+// GatherTopImageSubmissions gathers images for the top N submissions for the
+// configured subreddits.
 func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames []string) error {
 	for _, subredditName := range subredditNames {
 		topPosts, _, err := s.client.Subreddit.TopPosts(

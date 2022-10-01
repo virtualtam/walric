@@ -23,13 +23,23 @@ type postImage struct {
 	WidthPx  int
 }
 
-func (i *postImage) Download() error {
-	out, err := os.Create(i.filePath)
+func newPostImage(subredditDir string, post *reddit.Post) (*postImage, error) {
+	imageURL, err := url.Parse(post.URL)
 	if err != nil {
-		return err
+		return &postImage{}, err
 	}
-	defer out.Close()
 
+	fileName := fmt.Sprintf("%s-%s", post.ID, filepath.Base(imageURL.Path))
+	filePath := filepath.Join(subredditDir, fileName)
+
+	return &postImage{
+		url:      post.URL,
+		filePath: filePath,
+	}, nil
+}
+
+// Download downloads an image locally.
+func (i *postImage) Download() error {
 	resp, err := http.Get(i.url)
 	if err != nil {
 		return err
@@ -40,6 +50,12 @@ func (i *postImage) Download() error {
 		return fmt.Errorf("failed to download image: %s", resp.Status)
 	}
 
+	out, err := os.Create(i.filePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return err
@@ -48,7 +64,8 @@ func (i *postImage) Download() error {
 	return nil
 }
 
-func (i *postImage) UpdateResolution() error {
+// GetResolutionFromFile retrieves an image's resolution (height, width).
+func (i *postImage) GetResolutionFromFile() error {
 	reader, err := os.Open(i.filePath)
 	if err != nil {
 		return err
@@ -65,21 +82,6 @@ func (i *postImage) UpdateResolution() error {
 	i.WidthPx = config.Width
 
 	return nil
-}
-
-func newPostImage(subredditDir string, post *reddit.Post) (*postImage, error) {
-	imageURL, err := url.Parse(post.URL)
-	if err != nil {
-		return &postImage{}, err
-	}
-
-	fileName := fmt.Sprintf("%s-%s", post.ID, filepath.Base(imageURL.Path))
-	filePath := filepath.Join(subredditDir, fileName)
-
-	return &postImage{
-		url:      post.URL,
-		filePath: filePath,
-	}, nil
 }
 
 // maybeImageURL attempts to determine whether a URL points to a JPEG or PNG
