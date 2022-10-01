@@ -3,16 +3,23 @@ package gather
 import (
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/virtualtam/walric/pkg/submission"
 	"github.com/virtualtam/walric/pkg/subreddit"
+)
+
+const (
+	nWorkers = 4
 )
 
 // Service handles domain operations for gathering image files from Reddit.
@@ -172,10 +179,36 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 		log.Error().Err(err).Msgf("%s: failed to query database", subredditName)
 	}
 
+	ch := make(chan *reddit.Post)
+	var wg sync.WaitGroup
+	var errorStrings []string
+
+	for i := 0; i < nWorkers; i++ {
+		go func() {
+			for {
+				post, ok := <-ch
+				if !ok {
+					wg.Done()
+					return
+				}
+
+				if err := s.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, post); err != nil {
+					errorStrings = append(errorStrings, err.Error())
+				}
+			}
+		}()
+		wg.Add(1)
+	}
+
 	for _, post := range posts {
-		if err := s.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, post); err != nil {
-			return err
-		}
+		ch <- post
+	}
+
+	close(ch)
+	wg.Wait()
+
+	if len(errorStrings) > 0 {
+		return fmt.Errorf(strings.Join(errorStrings, "\n"))
 	}
 
 	return nil
