@@ -1,6 +1,6 @@
 BUILD_DIR ?= build
 
-all: lint test build
+all: lint race build
 .PHONY: all
 
 clean:

@@ -3,17 +3,15 @@ package gather
 import (
 	"context"
 	"errors"
-	"fmt"
 	"image"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
-	"sync"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sethjones/go-reddit/v2/reddit"
+	"github.com/sourcegraph/conc/pool"
 	"github.com/virtualtam/walric/pkg/submission"
 	"github.com/virtualtam/walric/pkg/subreddit"
 )
@@ -179,36 +177,15 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 		log.Error().Err(err).Msgf("%s: failed to query database", subredditName)
 	}
 
-	ch := make(chan *reddit.Post)
-	var wg sync.WaitGroup
-	var errorStrings []string
-
-	for i := 0; i < nWorkers; i++ {
-		go func() {
-			for {
-				post, ok := <-ch
-				if !ok {
-					wg.Done()
-					return
-				}
-
-				if err := s.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, post); err != nil {
-					errorStrings = append(errorStrings, err.Error())
-				}
-			}
-		}()
-		wg.Add(1)
-	}
-
+	workerPool := pool.New().WithErrors().WithMaxGoroutines(nWorkers)
 	for _, post := range posts {
-		ch <- post
+		workerPost := post
+		workerPool.Go(func() error {
+			return s.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, workerPost)
+		})
 	}
-
-	close(ch)
-	wg.Wait()
-
-	if len(errorStrings) > 0 {
-		return fmt.Errorf(strings.Join(errorStrings, "\n"))
+	if err := workerPool.Wait(); err != nil {
+		log.Error().Err(err).Msgf("%s: failed to download some submissions", subredditName)
 	}
 
 	return nil
