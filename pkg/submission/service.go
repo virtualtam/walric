@@ -45,8 +45,8 @@ func (s *Service) ByID(id int) (*Submission, error) {
 }
 
 func (s *Service) ByMinResolution(minResolution *monitor.Resolution) ([]*Submission, error) {
-	if minResolution.HeightPx < 1 || minResolution.WidthPx < 1 {
-		return []*Submission{}, ErrResolutionInvalid
+	if err := minResolution.Validate(); err != nil {
+		return []*Submission{}, err
 	}
 
 	submissions, err := s.r.SubmissionGetByMinResolution(minResolution)
@@ -123,8 +123,8 @@ func (s *Service) Search(text string) ([]*Submission, error) {
 }
 
 func (s *Service) Random(minResolution *monitor.Resolution) (*Submission, error) {
-	if minResolution.HeightPx < 1 || minResolution.WidthPx < 1 {
-		return &Submission{}, ErrResolutionInvalid
+	if err := minResolution.Validate(); err != nil {
+		return &Submission{}, err
 	}
 
 	submission, err := s.r.SubmissionGetRandom(minResolution)

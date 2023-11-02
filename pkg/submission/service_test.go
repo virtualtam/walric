@@ -184,17 +184,17 @@ func TestServiceByMinResolution(t *testing.T) {
 		{
 			tname:         "negative resolution height",
 			minResolution: &monitor.Resolution{HeightPx: -1200, WidthPx: 1920},
-			wantErr:       ErrResolutionInvalid,
+			wantErr:       monitor.ErrResolutionInvalid,
 		},
 		{
 			tname:         "negative resolution width",
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: -1920},
-			wantErr:       ErrResolutionInvalid,
+			wantErr:       monitor.ErrResolutionInvalid,
 		},
 		{
 			tname:         "negative resolution height and width",
 			minResolution: &monitor.Resolution{HeightPx: -1200, WidthPx: -1920},
-			wantErr:       ErrResolutionInvalid,
+			wantErr:       monitor.ErrResolutionInvalid,
 		},
 	}
 
@@ -520,17 +520,17 @@ func TestServiceRandom(t *testing.T) {
 		{
 			tname:         "negative resolution height",
 			minResolution: &monitor.Resolution{HeightPx: -1200, WidthPx: 1920},
-			wantErr:       ErrResolutionInvalid,
+			wantErr:       monitor.ErrResolutionInvalid,
 		},
 		{
 			tname:         "negative resolution width",
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: -1920},
-			wantErr:       ErrResolutionInvalid,
+			wantErr:       monitor.ErrResolutionInvalid,
 		},
 		{
 			tname:         "negative resolution height and width",
 			minResolution: &monitor.Resolution{HeightPx: -1200, WidthPx: -1920},
-			wantErr:       ErrResolutionInvalid,
+			wantErr:       monitor.ErrResolutionInvalid,
 		},
 	}
 
