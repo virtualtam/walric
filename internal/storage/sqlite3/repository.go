@@ -182,6 +182,24 @@ FROM submissions WHERE post_id=?`,
 	return s, nil
 }
 
+func (r *RepositorySQLite) SubmissionIsPostIDRegistered(postID string) (bool, error) {
+	s := &submission.Submission{}
+
+	err := r.db.QueryRowx(
+		"SELECT id FROM submissions WHERE post_id=?",
+		postID,
+	).StructScan(s)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (r *RepositorySQLite) SubmissionSearch(text string) ([]*submission.Submission, error) {
 	searchPattern := fmt.Sprintf("%%%s%%", text)
 
@@ -370,7 +388,7 @@ func (r *RepositorySQLite) SubredditGetByName(name string) (*subreddit.Subreddit
 func (r *RepositorySQLite) SubredditIsNameRegistered(name string) (bool, error) {
 	s := &subreddit.Subreddit{}
 
-	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE name=?", name).StructScan(s)
+	err := r.db.QueryRowx("SELECT id FROM subreddits WHERE name=?", name).StructScan(s)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}

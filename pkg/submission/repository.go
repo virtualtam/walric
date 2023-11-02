@@ -2,9 +2,15 @@ package submission
 
 import "github.com/virtualtam/walric/pkg/monitor"
 
+type ValidationRepository interface {
+	SubmissionIsPostIDRegistered(postID string) (bool, error)
+}
+
 // Repository defines the basic operations available to access and persist
 // Reddit Submissions.
 type Repository interface {
+	ValidationRepository
+
 	// SubmissionGetByID returns the Submission for a given ID.
 	SubmissionGetByID(id int) (*Submission, error)
 

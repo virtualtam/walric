@@ -35,6 +35,16 @@ func (r *RepositoryInMemory) SubmissionGetByPostID(postID string) (*Submission, 
 	return &Submission{}, ErrNotFound
 }
 
+func (r *RepositoryInMemory) SubmissionIsPostIDRegistered(postID string) (bool, error) {
+	for _, submission := range r.submissions {
+		if submission.PostID == postID {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func (r *RepositoryInMemory) SubmissionSearch(text string) ([]*Submission, error) {
 	results := []*Submission{}
 
