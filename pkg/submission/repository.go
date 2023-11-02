@@ -2,6 +2,7 @@ package submission
 
 import "github.com/virtualtam/walric/pkg/monitor"
 
+// ValidationRepository provides methods for Submission validation.
 type ValidationRepository interface {
 	SubmissionIsPostIDRegistered(postID string) (bool, error)
 }
