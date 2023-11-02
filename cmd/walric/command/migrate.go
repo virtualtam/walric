@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-	"github.com/virtualtam/walric/pkg/storage/sqlite3/migrations"
-
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/spf13/cobra"
+
+	"github.com/virtualtam/walric/internal/storage/sqlite3/migrations"
 )
 
 var _ migrate.Logger = &migrateLogger{}
