@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestValidatorByID(t *testing.T) {
+func TestServiceByID(t *testing.T) {
 	testCases := []struct {
 		tname                string
 		repositorySubreddits []*Subreddit
@@ -46,9 +46,9 @@ func TestValidatorByID(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
 			repository := NewRepositoryInMemory(tc.repositorySubreddits)
-			validator := newValidator(repository)
+			service := NewService(repository)
 
-			subreddit, err := validator.ByID(tc.id)
+			subreddit, err := service.ByID(tc.id)
 
 			if tc.wantErr != nil {
 				if err == nil {
@@ -75,7 +75,7 @@ func TestValidatorByID(t *testing.T) {
 	}
 }
 
-func TestValidatorByName(t *testing.T) {
+func TestServiceByName(t *testing.T) {
 	testCases := []struct {
 		tname                string
 		repositorySubreddits []*Subreddit
@@ -116,7 +116,7 @@ func TestValidatorByName(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
 			repository := NewRepositoryInMemory(tc.repositorySubreddits)
-			validator := newValidator(repository)
+			validator := NewService(repository)
 
 			subreddit, err := validator.ByName(tc.name)
 
@@ -145,7 +145,7 @@ func TestValidatorByName(t *testing.T) {
 	}
 }
 
-func TestValidatorCreate(t *testing.T) {
+func TestServiceCreate(t *testing.T) {
 	testCases := []struct {
 		tname                string
 		repositorySubreddits []*Subreddit
@@ -188,7 +188,7 @@ func TestValidatorCreate(t *testing.T) {
 		t.Run(tc.tname, func(t *testing.T) {
 			repository := NewRepositoryInMemory(tc.repositorySubreddits)
 			currentID := repository.currentID
-			validator := newValidator(repository)
+			validator := NewService(repository)
 
 			err := validator.Create(tc.subreddit)
 

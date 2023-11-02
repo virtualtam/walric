@@ -1,8 +1,16 @@
 package subreddit
 
+// ValidationRepository provides methods for Subreddit validation.
+type ValidationRepository interface {
+	// SubredditIsNameRegistered returns whether this Subreddit was previously saved.
+	SubredditIsNameRegistered(name string) (bool, error)
+}
+
 // Repository defines the basic operations available to access and persist
 // Subreddits.
 type Repository interface {
+	ValidationRepository
+
 	// SubredditGetAll returns all persisted Subreddits.
 	SubredditGetAll() ([]*Subreddit, error)
 

@@ -308,6 +308,15 @@ VALUES (
 	return nil
 }
 
+func (r *RepositorySQLite) SubredditCreate(s *subreddit.Subreddit) error {
+	_, err := r.db.NamedExec("INSERT INTO subreddits(name) VALUES(:name)", s)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RepositorySQLite) SubredditGetAll() ([]*subreddit.Subreddit, error) {
 	rows, err := r.db.Queryx("SELECT id, name from subreddits ORDER BY name COLLATE NOCASE")
 
@@ -358,13 +367,18 @@ func (r *RepositorySQLite) SubredditGetByName(name string) (*subreddit.Subreddit
 	return s, nil
 }
 
-func (r *RepositorySQLite) SubredditCreate(s *subreddit.Subreddit) error {
-	_, err := r.db.NamedExec("INSERT INTO subreddits(name) VALUES(:name)", s)
+func (r *RepositorySQLite) SubredditIsNameRegistered(name string) (bool, error) {
+	s := &subreddit.Subreddit{}
+
+	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE name=?", name).StructScan(s)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (r *RepositorySQLite) SubredditGetStats() ([]subreddit.SubredditStats, error) {

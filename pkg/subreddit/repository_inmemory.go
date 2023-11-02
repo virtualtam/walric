@@ -10,6 +10,15 @@ type RepositoryInMemory struct {
 	subreddits []*Subreddit
 }
 
+func (r *RepositoryInMemory) SubredditCreate(subreddit *Subreddit) error {
+	subreddit.ID = r.currentID
+	r.currentID++
+
+	r.subreddits = append(r.subreddits, subreddit)
+
+	return nil
+}
+
 func (r *RepositoryInMemory) SubredditGetAll() ([]*Subreddit, error) {
 	return r.subreddits, nil
 }
@@ -38,13 +47,14 @@ func (r *RepositoryInMemory) SubredditGetByName(name string) (*Subreddit, error)
 	return &Subreddit{}, ErrNotFound
 }
 
-func (r *RepositoryInMemory) SubredditCreate(subreddit *Subreddit) error {
-	subreddit.ID = r.currentID
-	r.currentID++
+func (r *RepositoryInMemory) SubredditIsNameRegistered(name string) (bool, error) {
+	for _, subreddit := range r.subreddits {
+		if subreddit.Name == name {
+			return true, nil
+		}
+	}
 
-	r.subreddits = append(r.subreddits, subreddit)
-
-	return nil
+	return false, nil
 }
 
 // NewRepositoryInMemory initializes and returns an in-memory repository for

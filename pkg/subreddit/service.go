@@ -4,16 +4,45 @@ import "errors"
 
 // Service handles domain operations for Subreddit management.
 type Service struct {
-	*validator
+	r Repository
 }
 
 // NewService creates and initializes a Subreddit Service.
-func NewService(repository Repository) *Service {
-	validator := newValidator(repository)
-
+func NewService(r Repository) *Service {
 	return &Service{
-		validator: validator,
+		r: r,
 	}
+}
+
+func (s *Service) ByID(id int) (*Subreddit, error) {
+	sr := &Subreddit{ID: id}
+
+	if err := sr.requirePositiveID(); err != nil {
+		return &Subreddit{}, err
+	}
+
+	return s.r.SubredditGetByID(id)
+}
+
+func (s *Service) ByName(name string) (*Subreddit, error) {
+	sr := &Subreddit{Name: name}
+	sr.Normalize()
+
+	if err := sr.requireName(); err != nil {
+		return &Subreddit{}, err
+	}
+
+	return s.r.SubredditGetByName(sr.Name)
+}
+
+func (s *Service) Create(sr *Subreddit) error {
+	sr.Normalize()
+
+	if err := sr.ValidateForAddition(s.r); err != nil {
+		return err
+	}
+
+	return s.r.SubredditCreate(sr)
 }
 
 func (s *Service) GetOrCreateByName(name string) (*Subreddit, error) {
@@ -34,4 +63,8 @@ func (s *Service) GetOrCreateByName(name string) (*Subreddit, error) {
 	}
 
 	return subreddit, nil
+}
+
+func (s *Service) Stats() ([]SubredditStats, error) {
+	return s.r.SubredditGetStats()
 }
