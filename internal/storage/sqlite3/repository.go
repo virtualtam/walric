@@ -22,6 +22,14 @@ type RepositorySQLite struct {
 	db *sqlx.DB
 }
 
+// NewRepositorySQLite initializes and returns a SQLite3 repository to persist
+// and manage Subreddits.
+func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
+	return &RepositorySQLite{
+		db: db,
+	}
+}
+
 func (r *RepositorySQLite) HistoryGetAll() ([]*history.Entry, error) {
 	rows, err := r.db.Queryx("SELECT date, submission_id FROM history ORDER BY date")
 	if err != nil {
@@ -31,10 +39,21 @@ func (r *RepositorySQLite) HistoryGetAll() ([]*history.Entry, error) {
 	entries := []*history.Entry{}
 
 	for rows.Next() {
-		entry := &history.Entry{}
+		dbEntry := &Entry{}
 
-		if err := rows.StructScan(&entry); err != nil {
+		if err := rows.StructScan(&dbEntry); err != nil {
 			return []*history.Entry{}, err
+		}
+
+		sub, err := r.SubmissionGetByID(dbEntry.SubmissionID)
+		if err != nil {
+			return []*history.Entry{}, err
+		}
+
+		entry := &history.Entry{
+			ID:         dbEntry.ID,
+			Date:       dbEntry.Date,
+			Submission: sub,
 		}
 
 		entries = append(entries, entry)
@@ -44,9 +63,9 @@ func (r *RepositorySQLite) HistoryGetAll() ([]*history.Entry, error) {
 }
 
 func (r *RepositorySQLite) HistoryGetCurrent() (*history.Entry, error) {
-	entry := &history.Entry{}
+	dbEntry := &Entry{}
 
-	err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(entry)
+	err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(dbEntry)
 	if errors.Is(err, sql.ErrNoRows) {
 		return &history.Entry{}, history.ErrNotFound
 	}
@@ -54,14 +73,27 @@ func (r *RepositorySQLite) HistoryGetCurrent() (*history.Entry, error) {
 		return &history.Entry{}, err
 	}
 
+	sub, err := r.SubmissionGetByID(dbEntry.SubmissionID)
+	if err != nil {
+		return &history.Entry{}, err
+	}
+
+	entry := &history.Entry{
+		ID:         dbEntry.ID,
+		Date:       dbEntry.Date,
+		Submission: sub,
+	}
+
 	return entry, nil
 }
 
 func (r *RepositorySQLite) HistoryCreate(entry *history.Entry) error {
+	dbEntry := newEntry(entry)
+
 	_, err := r.db.NamedExec(`
 INSERT INTO history(date, submission_id)
 VALUES (:date, :submission_id)`,
-		entry,
+		dbEntry,
 	)
 	if err != nil {
 		return err
@@ -424,12 +456,4 @@ ORDER BY sr.name COLLATE NOCASE
 	}
 
 	return subredditStats, nil
-}
-
-// NewRepositorySQLite initializes and returns a SQLite3 repository to persist
-// and manage Subreddits.
-func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
-	return &RepositorySQLite{
-		db: db,
-	}
 }

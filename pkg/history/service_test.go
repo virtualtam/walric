@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/virtualtam/walric/pkg/submission"
 )
 
 func TestServiceCreate(t *testing.T) {
@@ -19,22 +21,22 @@ func TestServiceCreate(t *testing.T) {
 		{
 			tname: "new entry",
 			entry: &Entry{
-				Date:         now,
-				SubmissionID: 856,
+				Date:       now,
+				Submission: &submission.Submission{ID: 856},
 			},
 		},
 		{
 			tname: "new duplicate entry",
 			repositoryEntries: []*Entry{
 				{
-					ID:           1,
-					Date:         now,
-					SubmissionID: 856,
+					ID:         1,
+					Date:       now,
+					Submission: &submission.Submission{ID: 856},
 				},
 			},
 			entry: &Entry{
-				Date:         now,
-				SubmissionID: 856,
+				Date:       now,
+				Submission: &submission.Submission{ID: 856},
 			},
 		},
 	}
@@ -77,8 +79,8 @@ func TestServiceCreate(t *testing.T) {
 				return
 			}
 
-			if entry.SubmissionID != tc.entry.SubmissionID {
-				t.Errorf("want submission ID %d, got %d", tc.entry.SubmissionID, entry.SubmissionID)
+			if entry.Submission.ID != tc.entry.Submission.ID {
+				t.Errorf("want submission ID %d, got %d", tc.entry.Submission.ID, entry.Submission.ID)
 			}
 		})
 	}

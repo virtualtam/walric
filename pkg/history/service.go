@@ -27,7 +27,7 @@ func (s *Service) All() ([]*Entry, error) {
 	}
 
 	for _, entry := range entries {
-		submission, err := s.submissionService.ByID(entry.SubmissionID)
+		submission, err := s.submissionService.ByID(entry.Submission.ID)
 		if err != nil {
 			return []*Entry{}, err
 		}
@@ -45,7 +45,7 @@ func (s *Service) Current() (*Entry, error) {
 		return &Entry{}, err
 	}
 
-	submission, err := s.submissionService.ByID(entry.SubmissionID)
+	submission, err := s.submissionService.ByID(entry.Submission.ID)
 	if err != nil {
 		return &Entry{}, err
 	}

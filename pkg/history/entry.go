@@ -9,11 +9,10 @@ import (
 // Entry represents a Submission that was selected as being suitable as a
 // wallpaper for a given monitor setup.
 type Entry struct {
-	ID   int       `db:"id"`
-	Date time.Time `db:"date"`
+	ID   int
+	Date time.Time
 
-	SubmissionID int                    `db:"submission_id"`
-	Submission   *submission.Submission `db:"-"`
+	Submission *submission.Submission
 }
 
 // NewEntry initializes and returns a new history Entry.
@@ -25,8 +24,7 @@ func NewEntry(sub *submission.Submission) (*Entry, error) {
 	now := time.Now().UTC()
 
 	return &Entry{
-		Date:         now,
-		Submission:   sub,
-		SubmissionID: sub.ID,
+		Date:       now,
+		Submission: sub,
 	}, nil
 }
