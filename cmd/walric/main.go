@@ -29,9 +29,7 @@ func main() {
 		command.NewStatsCommand(),
 	}
 
-	for _, cmd := range commands {
-		rootCommand.AddCommand(cmd)
-	}
+	rootCommand.AddCommand(commands...)
 
 	cobra.CheckErr(rootCommand.Execute())
 }
