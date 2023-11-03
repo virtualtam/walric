@@ -3,8 +3,10 @@ package command
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/spf13/cobra"
+
 	"github.com/virtualtam/walric/pkg/gather"
 )
 
@@ -32,7 +34,7 @@ func NewGatherCommand() *cobra.Command {
 				Time:        walricConfig.Walric.TimeFilter,
 			}
 
-			gatherService := gather.NewService(redditClient, submissionService, walricConfig.Walric.DataDir, listPostOptions)
+			gatherService := gather.NewService(log.Logger, redditClient, submissionService, walricConfig.Walric.DataDir, listPostOptions)
 
 			ctx := context.Background()
 

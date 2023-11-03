@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/sourcegraph/conc/pool"
 	"github.com/virtualtam/walric/pkg/submission"
@@ -21,6 +21,8 @@ const (
 
 // Service handles domain operations for gathering image files from Reddit.
 type Service struct {
+	logger zerolog.Logger
+
 	client            *reddit.Client
 	submissionService *submission.Service
 	dataDir           string
@@ -28,8 +30,10 @@ type Service struct {
 }
 
 // NewService creates and initializes a new Service.
-func NewService(client *reddit.Client, submissionService *submission.Service, dataDir string, listPostOptions *reddit.ListPostOptions) *Service {
+func NewService(rootLogger zerolog.Logger, client *reddit.Client, submissionService *submission.Service, dataDir string, listPostOptions *reddit.ListPostOptions) *Service {
 	return &Service{
+		logger: rootLogger.With().Str("service", "gather").Logger(),
+
 		client:            client,
 		submissionService: submissionService,
 		dataDir:           dataDir,
@@ -41,20 +45,24 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 	var imagePosts []*reddit.Post
 
 	for _, post := range posts {
+		postLogger := s.logger.With().
+			Str("post_id", post.ID).
+			Str("post_title", post.Title).
+			Str("subreddit", post.SubredditName).
+			Logger()
+
 		// check whether the post's URL is likely to point to an image file
 		mediaURL, err := url.Parse(post.URL)
 		if err != nil {
-			log.Error().Err(err).Msgf("failed to parse URL: %s", post.URL)
+			postLogger.Error().
+				Err(err).
+				Str("post_url", post.URL).
+				Msg("failed to parse URL")
 			continue
 		}
 
 		if !maybeImageURL(mediaURL) {
-			log.Debug().Msgf(
-				"%s: submission does not contain an image: %s - %s",
-				post.SubredditName,
-				post.ID,
-				post.Title,
-			)
+			postLogger.Debug().Msg("submission does not contain an image")
 			continue
 		}
 
@@ -62,17 +70,12 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 		_, err = s.submissionService.ByPostID(post.ID)
 
 		if err == nil {
-			log.Debug().Msgf(
-				"%s: submission already saved: %s - %s",
-				post.SubredditName,
-				post.ID,
-				post.Title,
-			)
+			postLogger.Debug().Msg("submission already saved")
 			continue
 		}
 
 		if err != submission.ErrSubmissionNotFound {
-			log.Error().Err(err).Msgf("database: failed to query submission information")
+			postLogger.Error().Err(err).Msg("database: failed to query submission information")
 			return []*reddit.Post{}, err
 		}
 
@@ -81,17 +84,15 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 		ok, err := isSupportedImageURL(http.DefaultClient, mediaURL)
 
 		if err != nil {
-			log.Error().Err(err).Msgf("failed to retrieve remote file metadata: %s", post.URL)
+			postLogger.Error().
+				Err(err).
+				Str("post_url", post.URL).
+				Msg("failed to retrieve remote file metadata")
 			continue
 		}
 
 		if !ok {
-			log.Debug().Msgf(
-				"%s: submission points to a file with an unsupported format: %s - %s",
-				post.SubredditName,
-				post.ID,
-				post.Title,
-			)
+			postLogger.Debug().Msg("unsupported image file format")
 			continue
 		}
 
@@ -102,37 +103,58 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 }
 
 func (s *Service) gatherImageSubmission(sr *submission.Subreddit, subredditName string, subredditDir string, post *reddit.Post) error {
+	gatherLogger := s.logger.With().Str("subreddit", subredditName).Logger()
+
 	postImage, err := newPostImage(subredditDir, post)
 	if err != nil {
-		log.Error().Err(err).Msgf("%s: failed to fetch image metadata from URL: %s", subredditName, post.URL)
+		gatherLogger.Error().
+			Err(err).
+			Str("post_url", post.URL).
+			Msg("failed to fetch image metadata")
 		return err
 	}
 
 	if err := postImage.Download(); err != nil {
-		log.Error().Err(err).Msgf("%s: failed to download image from URL: %s", subredditName, post.URL)
+		gatherLogger.Error().
+			Err(err).
+			Str("post_url", post.URL).
+			Msgf("failed to download image")
 		return err
 	}
 
 	err = postImage.GetResolutionFromFile()
 	if errors.Is(err, image.ErrFormat) {
-		log.Warn().Msgf("%s: unknown or unsupported image file format: %s", subredditName, postImage.filePath)
+		gatherLogger.Warn().
+			Str("filepath", postImage.filePath).
+			Msgf("unknown or unsupported image file format")
 
 		if err := os.Remove(postImage.filePath); err != nil {
-			log.Error().Err(err).Msgf("image: failed to remove file: %s", postImage.filePath)
+			gatherLogger.Error().
+				Err(err).
+				Str("filepath", postImage.filePath).
+				Msg("failed to remove unsupported image file")
 			return err
 		}
 
-		log.Warn().Msgf("%s: file removed: %s", subredditName, postImage.filePath)
+		gatherLogger.Warn().
+			Str("filepath", postImage.filePath).
+			Msg("unsupported image file removed")
 
 		return nil
 	} else if err != nil {
-		log.Error().Err(err).Msgf("%s: failed to get image resolution: %s", subredditName, postImage.filePath)
+		gatherLogger.Error().
+			Err(err).
+			Str("filepath", postImage.filePath).
+			Msg("failed to get image resolution")
 		return err
 	}
 
 	imageURL, err := url.Parse(post.URL)
 	if err != nil {
-		log.Error().Err(err).Msgf("%s: failed to parse image URL: %s", subredditName, imageURL)
+		gatherLogger.Error().
+			Err(err).
+			Stringer("image_url", imageURL).
+			Msg("failed to parse image URL")
 		return err
 	}
 
@@ -153,24 +175,38 @@ func (s *Service) gatherImageSubmission(sr *submission.Subreddit, subredditName 
 	}
 
 	if err := s.submissionService.Create(dbSubmission); err != nil {
-		log.Error().Err(err).Msgf("%s: failed to create submission entry: %s - %s", subredditName, post.ID, post.Title)
+		gatherLogger.Error().
+			Err(err).
+			Str("post_id", post.ID).
+			Str("post_title", post.Title).
+			Msgf("failed to create submission")
 		return err
 	}
 
-	log.Info().Msgf("%s: submission saved to database: %s - %s", subredditName, post.ID, post.Title)
+	gatherLogger.Info().
+		Str("post_id", post.ID).
+		Str("post_title", post.Title).
+		Msg("submission saved to database")
 	return nil
 }
 
 func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName string, posts []*reddit.Post) error {
+	gatherLogger := s.logger.With().Str("subreddit", subredditName).Logger()
+
 	subredditDir := filepath.Join(s.dataDir, subredditName)
 	if err := os.MkdirAll(subredditDir, os.ModePerm); err != nil {
-		log.Error().Err(err).Msgf("failed to create directory: %s", subredditDir)
+		gatherLogger.Error().
+			Err(err).
+			Str("subreddit_dir", subredditDir).
+			Msg("failed to create directory")
 		return err
 	}
 
 	sr, err := s.submissionService.SubredditGetOrCreateByName(subredditName)
 	if err != nil {
-		log.Error().Err(err).Msgf("%s: failed to query database", subredditName)
+		gatherLogger.Error().
+			Err(err).
+			Msg("failed to query database")
 	}
 
 	workerPool := pool.New().WithErrors().WithMaxGoroutines(nWorkers)
@@ -181,7 +217,9 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 		})
 	}
 	if err := workerPool.Wait(); err != nil {
-		log.Error().Err(err).Msgf("%s: failed to download some submissions", subredditName)
+		gatherLogger.Error().
+			Err(err).
+			Msg("failed to download some submissions")
 	}
 
 	return nil
@@ -190,7 +228,14 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 // GatherTopImageSubmissions gathers images for the top N submissions for the
 // configured subreddits.
 func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames []string) error {
+	s.logger.Info().
+		Int("gather_limit", s.listPostOptions.Limit).
+		Str("gather_range", s.listPostOptions.Time).
+		Msg("gathering Reddit posts containing images")
+
 	for _, subredditName := range subredditNames {
+		gatherLogger := s.logger.With().Str("subreddit", subredditName).Logger()
+
 		topPosts, _, err := s.client.Subreddit.TopPosts(
 			ctx,
 			subredditName,
@@ -198,39 +243,31 @@ func (s *Service) GatherTopImageSubmissions(ctx context.Context, subredditNames 
 		)
 
 		if err != nil {
-			log.Error().Err(err).Msgf(
-				"%s: failed to retrieve top %d posts for the last %s",
-				subredditName,
-				s.listPostOptions.Limit,
-				s.listPostOptions.Time,
-			)
+			gatherLogger.Error().
+				Err(err).
+				Msg("failed to retrieve posts")
 			return err
 		}
 
-		log.Debug().Msgf(
-			"%s: found %d top posts for the last %s",
-			subredditName,
-			len(topPosts),
-			s.listPostOptions.Time,
-		)
+		gatherLogger.Debug().
+			Int("n_posts", len(topPosts)).
+			Msg("found top posts")
 
 		posts, err := s.filterPosts(topPosts)
 		if err != nil {
-			log.Error().Err(err).Msgf("%s: failed to filter posts", subredditName)
+			gatherLogger.Error().Err(err).Msg("failed to filter posts")
 			return err
 		}
 
 		if len(posts) == 0 {
-			log.Warn().Msgf("%s: found no new posts, or no post containing images", subredditName)
+			gatherLogger.Info().Msgf("found no new posts or no post containing images")
 			continue
 		}
 
-		log.Info().Msgf(
-			"%s: found %d new posts containing images for the last %s",
-			subredditName,
-			len(posts),
-			s.listPostOptions.Time,
-		)
+		gatherLogger.Info().
+			Int("n_posts", len(topPosts)).
+			Int("n_image_posts", len(posts)).
+			Msg("found new posts containing images")
 
 		if err := s.gatherImageSubmissions(ctx, subredditName, posts); err != nil {
 			return err
