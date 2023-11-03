@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/virtualtam/walric/cmd/walric/formatter"
+	"github.com/virtualtam/walric/pkg/history"
 	"github.com/virtualtam/walric/pkg/monitor"
 )
 
@@ -27,7 +28,12 @@ func NewRandomCommand() *cobra.Command {
 				cobra.CheckErr(err)
 			}
 
-			if err := historyService.Save(submission); err != nil {
+			entry, err := history.NewEntry(submission)
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+
+			if err := historyService.Save(entry); err != nil {
 				cobra.CheckErr(err)
 			}
 

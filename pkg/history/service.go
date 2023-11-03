@@ -1,20 +1,27 @@
 package history
 
 import (
-	"time"
-
 	"github.com/virtualtam/walric/pkg/submission"
 )
 
-// Service handles domain operations for Entry management.
+// Service handles domain operations for Entry history management.
 type Service struct {
-	*validator
+	r Repository
 
 	submissionService *submission.Service
 }
 
+// NewService creates and initializes an Entry history Service.
+func NewService(r Repository, submissionService *submission.Service) *Service {
+	return &Service{
+		r:                 r,
+		submissionService: submissionService,
+	}
+}
+
+// All returns the history of all saved entries.
 func (s *Service) All() ([]*Entry, error) {
-	entries, err := s.validator.HistoryGetAll()
+	entries, err := s.r.HistoryGetAll()
 	if err != nil {
 		return []*Entry{}, err
 	}
@@ -31,8 +38,9 @@ func (s *Service) All() ([]*Entry, error) {
 	return entries, nil
 }
 
+// Current returns the last selected history Entry.
 func (s *Service) Current() (*Entry, error) {
-	entry, err := s.validator.HistoryGetCurrent()
+	entry, err := s.r.HistoryGetCurrent()
 	if err != nil {
 		return &Entry{}, err
 	}
@@ -47,23 +55,7 @@ func (s *Service) Current() (*Entry, error) {
 	return entry, nil
 }
 
-func (s *Service) Save(submission *submission.Submission) error {
-	now := time.Now().UTC()
-
-	entry := &Entry{
-		Date:         now,
-		SubmissionID: submission.ID,
-	}
-
-	return s.Create(entry)
-}
-
-// NewService creates and initializes an Entry Service.
-func NewService(repository Repository, submissionService *submission.Service) *Service {
-	validator := newValidator(repository)
-
-	return &Service{
-		validator:         validator,
-		submissionService: submissionService,
-	}
+// Save adds a new Entry to the history.
+func (s *Service) Save(entry *Entry) error {
+	return s.r.HistoryCreate(entry)
 }

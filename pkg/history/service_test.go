@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestValidatorCreate(t *testing.T) {
+func TestServiceCreate(t *testing.T) {
 	now := time.Now()
 
 	testCases := []struct {
@@ -37,18 +37,6 @@ func TestValidatorCreate(t *testing.T) {
 				SubmissionID: 856,
 			},
 		},
-
-		// error cases
-		{
-			tname:   "submission ID is negative",
-			entry:   &Entry{ID: -67},
-			wantErr: ErrSubmissionIDNegativeOrZero,
-		},
-		{
-			tname:   "submission ID equals zero",
-			entry:   &Entry{ID: 0},
-			wantErr: ErrSubmissionIDNegativeOrZero,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -58,9 +46,9 @@ func TestValidatorCreate(t *testing.T) {
 			repository := &repositoryInMemory{
 				entries: tc.repositoryEntries,
 			}
-			validator := newValidator(repository)
+			service := NewService(repository, nil)
 
-			err := validator.Create(tc.entry)
+			err := service.Save(tc.entry)
 
 			if tc.wantErr != nil {
 				if err == nil {
