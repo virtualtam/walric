@@ -6,31 +6,32 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+
 	"github.com/virtualtam/walric/pkg/history"
 	"github.com/virtualtam/walric/pkg/monitor"
 	"github.com/virtualtam/walric/pkg/submission"
 	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
-var _ history.Repository = &RepositorySQLite{}
-var _ submission.Repository = &RepositorySQLite{}
-var _ subreddit.Repository = &RepositorySQLite{}
+var _ history.Repository = &Repository{}
+var _ submission.Repository = &Repository{}
+var _ subreddit.Repository = &Repository{}
 
-// RepositorySQLite provides a SQLite3 database persistence layer for
+// Repository provides a SQLite3 database persistence layer for
 // Subreddits.
-type RepositorySQLite struct {
+type Repository struct {
 	db *sqlx.DB
 }
 
-// NewRepositorySQLite initializes and returns a SQLite3 repository to persist
+// NewRepository initializes and returns a SQLite3 repository to persist
 // and manage Subreddits.
-func NewRepositorySQLite(db *sqlx.DB) *RepositorySQLite {
-	return &RepositorySQLite{
+func NewRepository(db *sqlx.DB) *Repository {
+	return &Repository{
 		db: db,
 	}
 }
 
-func (r *RepositorySQLite) HistoryGetAll() ([]*history.Entry, error) {
+func (r *Repository) HistoryGetAll() ([]*history.Entry, error) {
 	rows, err := r.db.Queryx("SELECT date, submission_id FROM history ORDER BY date")
 	if err != nil {
 		return []*history.Entry{}, err
@@ -39,7 +40,7 @@ func (r *RepositorySQLite) HistoryGetAll() ([]*history.Entry, error) {
 	entries := []*history.Entry{}
 
 	for rows.Next() {
-		dbEntry := &Entry{}
+		dbEntry := &DBEntry{}
 
 		if err := rows.StructScan(&dbEntry); err != nil {
 			return []*history.Entry{}, err
@@ -62,8 +63,8 @@ func (r *RepositorySQLite) HistoryGetAll() ([]*history.Entry, error) {
 	return entries, nil
 }
 
-func (r *RepositorySQLite) HistoryGetCurrent() (*history.Entry, error) {
-	dbEntry := &Entry{}
+func (r *Repository) HistoryGetCurrent() (*history.Entry, error) {
+	dbEntry := &DBEntry{}
 
 	err := r.db.QueryRowx("SELECT date, submission_id FROM history ORDER BY date desc LIMIT 1").StructScan(dbEntry)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -87,8 +88,8 @@ func (r *RepositorySQLite) HistoryGetCurrent() (*history.Entry, error) {
 	return entry, nil
 }
 
-func (r *RepositorySQLite) HistoryCreate(entry *history.Entry) error {
-	dbEntry := newEntry(entry)
+func (r *Repository) HistoryCreate(entry *history.Entry) error {
+	dbEntry := newDBEntry(entry)
 
 	_, err := r.db.NamedExec(`
 INSERT INTO history(date, submission_id)
@@ -102,28 +103,10 @@ VALUES (:date, :submission_id)`,
 	return nil
 }
 
-func (r *RepositorySQLite) SubmissionGetByID(id int) (*submission.Submission, error) {
-	s := &submission.Submission{}
+func (r *Repository) submissionGetQuery(query string, queryParams ...any) (*submission.Submission, error) {
+	dbSubmission := &DBSubmission{}
 
-	err := r.db.QueryRowx(`
-SELECT
-  id,
-  author,
-  created_utc,
-  domain,
-  image_filename,
-  image_height_px,
-  image_width_px,
-  over_18,
-  permalink,
-  post_id,
-  score,
-  subreddit_id,
-  title,
-  url
-FROM submissions WHERE id=?`,
-		id,
-	).StructScan(s)
+	err := r.db.QueryRowx(query, queryParams...).StructScan(dbSubmission)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return &submission.Submission{}, submission.ErrNotFound
@@ -132,11 +115,68 @@ FROM submissions WHERE id=?`,
 		return &submission.Submission{}, err
 	}
 
+	sr, err := r.SubredditGetByID(dbSubmission.SubredditID)
+	if err != nil {
+		return &submission.Submission{}, err
+	}
+
+	s := dbSubmission.AsSubmission(sr)
+
 	return s, nil
 }
 
-func (r *RepositorySQLite) SubmissionGetByMinResolution(minResolution *monitor.Resolution) ([]*submission.Submission, error) {
-	rows, err := r.db.Queryx(`
+func (r *Repository) submissionGetManyQuery(query string, queryParams ...any) ([]*submission.Submission, error) {
+	rows, err := r.db.Queryx(query, queryParams...)
+
+	if err != nil {
+		return []*submission.Submission{}, err
+	}
+
+	submissions := []*submission.Submission{}
+
+	for rows.Next() {
+		dbSubmission := &DBSubmission{}
+
+		if err := rows.StructScan(dbSubmission); err != nil {
+			return []*submission.Submission{}, err
+		}
+
+		sr, err := r.SubredditGetByID(dbSubmission.SubredditID)
+		if err != nil {
+			return []*submission.Submission{}, err
+		}
+
+		s := dbSubmission.AsSubmission(sr)
+		submissions = append(submissions, s)
+	}
+
+	return submissions, nil
+}
+
+func (r *Repository) SubmissionGetByID(id int) (*submission.Submission, error) {
+	return r.submissionGetQuery(`
+SELECT
+	id,
+	author,
+	created_utc,
+	domain,
+	image_filename,
+	image_height_px,
+	image_width_px,
+	over_18,
+	permalink,
+	post_id,
+	score,
+	subreddit_id,
+	title,
+	url
+FROM submissions WHERE id=?`,
+		id,
+	)
+}
+
+func (r *Repository) SubmissionGetByMinResolution(minResolution *monitor.Resolution) ([]*submission.Submission, error) {
+	return r.submissionGetManyQuery(`
 SELECT
   sm.id,
   sm.author,
@@ -161,30 +201,10 @@ ORDER BY sub.name COLLATE NOCASE, sm.created_utc
 		minResolution.HeightPx,
 		minResolution.WidthPx,
 	)
-
-	if err != nil {
-		return []*submission.Submission{}, err
-	}
-
-	submissions := []*submission.Submission{}
-
-	for rows.Next() {
-		s := &submission.Submission{}
-
-		if err := rows.StructScan(s); err != nil {
-			return []*submission.Submission{}, err
-		}
-
-		submissions = append(submissions, s)
-	}
-
-	return submissions, nil
 }
 
-func (r *RepositorySQLite) SubmissionGetByPostID(postID string) (*submission.Submission, error) {
-	s := &submission.Submission{}
-
-	err := r.db.QueryRowx(`
+func (r *Repository) SubmissionGetByPostID(postID string) (*submission.Submission, error) {
+	return r.submissionGetQuery(`
 SELECT
   id,
   author,
@@ -202,25 +222,16 @@ SELECT
   url
 FROM submissions WHERE post_id=?`,
 		postID,
-	).StructScan(s)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return &submission.Submission{}, submission.ErrNotFound
-	}
-	if err != nil {
-		return &submission.Submission{}, err
-	}
-
-	return s, nil
+	)
 }
 
-func (r *RepositorySQLite) SubmissionIsPostIDRegistered(postID string) (bool, error) {
-	s := &submission.Submission{}
+func (r *Repository) SubmissionIsPostIDRegistered(postID string) (bool, error) {
+	var registered int64
 
 	err := r.db.QueryRowx(
 		"SELECT id FROM submissions WHERE post_id=?",
 		postID,
-	).StructScan(s)
+	).Scan(&registered)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
@@ -232,10 +243,10 @@ func (r *RepositorySQLite) SubmissionIsPostIDRegistered(postID string) (bool, er
 	return true, nil
 }
 
-func (r *RepositorySQLite) SubmissionSearch(text string) ([]*submission.Submission, error) {
+func (r *Repository) SubmissionSearch(text string) ([]*submission.Submission, error) {
 	searchPattern := fmt.Sprintf("%%%s%%", text)
 
-	rows, err := r.db.Queryx(`
+	return r.submissionGetManyQuery(`
 SELECT
   id,
   author,
@@ -257,30 +268,10 @@ ORDER BY created_utc
 `,
 		searchPattern,
 	)
-
-	if err != nil {
-		return []*submission.Submission{}, err
-	}
-
-	submissions := []*submission.Submission{}
-
-	for rows.Next() {
-		s := &submission.Submission{}
-
-		if err := rows.StructScan(s); err != nil {
-			return []*submission.Submission{}, err
-		}
-
-		submissions = append(submissions, s)
-	}
-
-	return submissions, nil
 }
 
-func (r *RepositorySQLite) SubmissionGetRandom(minResolution *monitor.Resolution) (*submission.Submission, error) {
-	s := &submission.Submission{}
-
-	err := r.db.QueryRowx(`
+func (r *Repository) SubmissionGetRandom(minResolution *monitor.Resolution) (*submission.Submission, error) {
+	return r.submissionGetQuery(`
 SELECT
   id,
   author,
@@ -304,19 +295,12 @@ ORDER BY RANDOM() LIMIT 1
 `,
 		minResolution.HeightPx,
 		minResolution.WidthPx,
-	).StructScan(s)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return &submission.Submission{}, submission.ErrNotFound
-	}
-	if err != nil {
-		return &submission.Submission{}, err
-	}
-
-	return s, nil
+	)
 }
 
-func (r *RepositorySQLite) SubmissionCreate(s *submission.Submission) error {
+func (r *Repository) SubmissionCreate(s *submission.Submission) error {
+	dbSubmission := newDBSubmission(s)
+
 	_, err := r.db.NamedExec(`
 INSERT INTO submissions(
 	subreddit_id,
@@ -348,7 +332,7 @@ VALUES (
 	:image_height_px,
 	:image_width_px
 )`,
-		s,
+		dbSubmission,
 	)
 
 	if err != nil {
@@ -358,7 +342,7 @@ VALUES (
 	return nil
 }
 
-func (r *RepositorySQLite) SubredditCreate(s *subreddit.Subreddit) error {
+func (r *Repository) SubredditCreate(s *subreddit.Subreddit) error {
 	_, err := r.db.NamedExec("INSERT INTO subreddits(name) VALUES(:name)", s)
 	if err != nil {
 		return err
@@ -367,7 +351,7 @@ func (r *RepositorySQLite) SubredditCreate(s *subreddit.Subreddit) error {
 	return nil
 }
 
-func (r *RepositorySQLite) SubredditGetAll() ([]*subreddit.Subreddit, error) {
+func (r *Repository) SubredditGetAll() ([]*subreddit.Subreddit, error) {
 	rows, err := r.db.Queryx("SELECT id, name from subreddits ORDER BY name COLLATE NOCASE")
 
 	if err != nil {
@@ -389,7 +373,7 @@ func (r *RepositorySQLite) SubredditGetAll() ([]*subreddit.Subreddit, error) {
 	return subreddits, nil
 }
 
-func (r *RepositorySQLite) SubredditGetByID(id int) (*subreddit.Subreddit, error) {
+func (r *Repository) SubredditGetByID(id int) (*subreddit.Subreddit, error) {
 	s := &subreddit.Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE id=?", id).StructScan(s)
@@ -403,7 +387,7 @@ func (r *RepositorySQLite) SubredditGetByID(id int) (*subreddit.Subreddit, error
 	return s, nil
 }
 
-func (r *RepositorySQLite) SubredditGetByName(name string) (*subreddit.Subreddit, error) {
+func (r *Repository) SubredditGetByName(name string) (*subreddit.Subreddit, error) {
 	s := &subreddit.Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE name=?", name).StructScan(s)
@@ -417,10 +401,10 @@ func (r *RepositorySQLite) SubredditGetByName(name string) (*subreddit.Subreddit
 	return s, nil
 }
 
-func (r *RepositorySQLite) SubredditIsNameRegistered(name string) (bool, error) {
-	s := &subreddit.Subreddit{}
+func (r *Repository) SubredditIsNameRegistered(name string) (bool, error) {
+	var registered int64
 
-	err := r.db.QueryRowx("SELECT id FROM subreddits WHERE name=?", name).StructScan(s)
+	err := r.db.QueryRowx("SELECT id FROM subreddits WHERE name=?", name).Scan(&registered)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -431,8 +415,9 @@ func (r *RepositorySQLite) SubredditIsNameRegistered(name string) (bool, error) 
 	return true, nil
 }
 
-func (r *RepositorySQLite) SubredditGetStats() ([]subreddit.SubredditStats, error) {
-	rows, err := r.db.Queryx(`SELECT sr.name as name, COUNT(sm.post_id) as submissions
+func (r *Repository) SubredditGetStats() ([]subreddit.SubredditStats, error) {
+	rows, err := r.db.Queryx(`
+SELECT sr.name as name, COUNT(sm.post_id) as submissions
 FROM subreddits AS sr
 LEFT JOIN submissions AS sm ON sr.id = sm.subreddit_id
 GROUP BY sr.name

@@ -141,7 +141,6 @@ func (s *Service) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subred
 
 	dbSubmission := &submission.Submission{
 		Subreddit:     dbSubreddit,
-		SubredditID:   dbSubreddit.ID,
 		Author:        post.Author,
 		Permalink:     post.Permalink,
 		PostID:        post.ID,

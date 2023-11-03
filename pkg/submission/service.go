@@ -35,7 +35,7 @@ func (s *Service) ByID(id int) (*Submission, error) {
 		return &Submission{}, err
 	}
 
-	subreddit, err := s.subredditService.ByID(submission.SubredditID)
+	subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -58,7 +58,7 @@ func (s *Service) ByMinResolution(minResolution *monitor.Resolution) ([]*Submiss
 	}
 
 	for _, submission := range submissions {
-		subreddit, err := s.subredditService.ByID(submission.SubredditID)
+		subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
 		if err != nil {
 			return []*Submission{}, err
 		}
@@ -83,7 +83,7 @@ func (s *Service) ByPostID(postID string) (*Submission, error) {
 		return &Submission{}, err
 	}
 
-	subreddit, err := s.subredditService.ByID(submission.SubredditID)
+	subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -117,7 +117,7 @@ func (s *Service) Search(text string) ([]*Submission, error) {
 	}
 
 	for _, submission := range submissions {
-		subreddit, err := s.subredditService.ByID(submission.SubredditID)
+		subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
 		if err != nil {
 			return []*Submission{}, err
 		}
@@ -140,7 +140,7 @@ func (s *Service) Random(minResolution *monitor.Resolution) (*Submission, error)
 		return &Submission{}, err
 	}
 
-	subreddit, err := s.subredditService.ByID(submission.SubredditID)
+	subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
 	if err != nil {
 		return &Submission{}, err
 	}

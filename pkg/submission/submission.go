@@ -11,28 +11,27 @@ import (
 // Submission represents the metadata for a Reddit post with an image
 // attachment, and the metadata for the corresponding local file.
 type Submission struct {
-	ID int `db:"id"`
+	ID int
 
-	Subreddit   *subreddit.Subreddit `db:"-"`
-	SubredditID int                  `db:"subreddit_id"`
+	Subreddit *subreddit.Subreddit
 
 	// Reddit post metadata
-	Author    string    `db:"author"`
-	Permalink string    `db:"permalink"`
-	PostID    string    `db:"post_id"`
-	PostedAt  time.Time `db:"created_utc"`
-	Score     int       `db:"score"`
-	Title     string    `db:"title"`
+	Author    string
+	Permalink string
+	PostID    string
+	PostedAt  time.Time
+	Score     int
+	Title     string
 
 	// Attached image metadata
-	ImageDomain string `db:"domain"`
-	ImageURL    string `db:"url"`
-	ImageNSFW   bool   `db:"over_18"`
+	ImageDomain string
+	ImageURL    string
+	ImageNSFW   bool
 
 	// Local image metadata
-	ImageFilename string `db:"image_filename"`
-	ImageHeightPx int    `db:"image_height_px"`
-	ImageWidthPx  int    `db:"image_width_px"`
+	ImageFilename string
+	ImageHeightPx int
+	ImageWidthPx  int
 }
 
 // Normalize sanitizes and normalizes all fields.
@@ -80,7 +79,7 @@ func (s *Submission) normalizeTitle() {
 }
 
 func (s *Submission) requirePositiveSubredditID() error {
-	if s.SubredditID <= 0 {
+	if s.Subreddit.ID <= 0 {
 		return ErrSubredditIDInvalid
 	}
 

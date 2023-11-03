@@ -6,15 +6,15 @@ import (
 	"github.com/virtualtam/walric/pkg/history"
 )
 
-type Entry struct {
+type DBEntry struct {
 	ID   int       `db:"id"`
 	Date time.Time `db:"date"`
 
 	SubmissionID int `db:"submission_id"`
 }
 
-func newEntry(entry *history.Entry) *Entry {
-	return &Entry{
+func newDBEntry(entry *history.Entry) *DBEntry {
+	return &DBEntry{
 		ID:           entry.ID,
 		Date:         entry.Date,
 		SubmissionID: entry.Submission.ID,

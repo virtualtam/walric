@@ -52,7 +52,7 @@ Walric helps you manage a collection of curated wallpapers, courtesy of the Redd
 				return err
 			}
 
-			sqliteRepository := sqlite3.NewRepositorySQLite(db)
+			sqliteRepository := sqlite3.NewRepository(db)
 
 			subredditService = subreddit.NewService(sqliteRepository)
 			submissionService = submission.NewService(sqliteRepository, subredditService)

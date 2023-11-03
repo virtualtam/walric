@@ -25,15 +25,14 @@ func TestServiceByID(t *testing.T) {
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, SubredditID: 1, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, SubredditID: 1, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			id: 2,
 			want: &Submission{
-				ID:          2,
-				SubredditID: 1,
-				Title:       "The Owl Nebula and Surfboard Galaxy",
-				Subreddit:   &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+				ID:        2,
+				Title:     "The Owl Nebula and Surfboard Galaxy",
+				Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
 			},
 		},
 		{
@@ -128,13 +127,13 @@ func TestServiceByMinResolution(t *testing.T) {
 					Title:         "Sunday Afternoon In The Park [640x480]",
 					ImageHeightPx: 480,
 					ImageWidthPx:  640,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 				{
 					Title:         "Laguna Sunrise [1920x1200]",
 					ImageHeightPx: 1200,
 					ImageWidthPx:  1920,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
@@ -148,17 +147,17 @@ func TestServiceByMinResolution(t *testing.T) {
 				{Title: "Sunday Afternoon In The Park [640x480]",
 					ImageHeightPx: 480,
 					ImageWidthPx:  640,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 				{Title: "Moroccan Sunset [2560x1440]",
 					ImageHeightPx: 1440,
 					ImageWidthPx:  2560,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 				{Title: "Laguna Sunrise [1920x1200]",
 					ImageHeightPx: 1200,
 					ImageWidthPx:  1920,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
@@ -243,16 +242,15 @@ func TestServiceByPostID(t *testing.T) {
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, PostID: "m31aga", SubredditID: 1, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, PostID: "owlsrf", SubredditID: 1, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, PostID: "m31aga", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, PostID: "owlsrf", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			postID: "owlsrf",
 			want: &Submission{
-				ID:          2,
-				PostID:      "owlsrf",
-				SubredditID: 1,
-				Title:       "The Owl Nebula and Surfboard Galaxy",
-				Subreddit:   &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+				ID:        2,
+				PostID:    "owlsrf",
+				Title:     "The Owl Nebula and Surfboard Galaxy",
+				Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
 			},
 		},
 
@@ -332,7 +330,7 @@ func TestServiceCreate(t *testing.T) {
 				},
 			},
 			submission: &Submission{
-				SubredditID:   25,
+				Subreddit:     &subreddit.Subreddit{ID: 25},
 				Author:        "janedoe",
 				Permalink:     "r/dummy/comments/newnew/new_submission/",
 				PostID:        "newnew",
@@ -352,39 +350,39 @@ func TestServiceCreate(t *testing.T) {
 		{
 			tname: "negative subreddit ID",
 			submission: &Submission{
-				SubredditID: -583,
+				Subreddit: &subreddit.Subreddit{ID: -583},
 			},
 			wantErr: ErrSubredditIDInvalid,
 		},
 		{
 			tname: "subreddit ID equals zero",
 			submission: &Submission{
-				SubredditID: 0,
+				Subreddit: &subreddit.Subreddit{ID: 0},
 			},
 			wantErr: ErrSubredditIDInvalid,
 		},
 		{
 			tname: "non-default ID",
 			submission: &Submission{
-				SubredditID: 12,
-				ID:          179,
-				PostID:      "nondft",
-				Title:       "Non-default [0x0]",
+				Subreddit: &subreddit.Subreddit{ID: 12},
+				ID:        179,
+				PostID:    "nondft",
+				Title:     "Non-default [0x0]",
 			},
 			wantErr: ErrIDInvalid,
 		},
 		{
 			tname: "empty PostID",
 			submission: &Submission{
-				SubredditID: 12,
+				Subreddit: &subreddit.Subreddit{ID: 12},
 			},
 			wantErr: ErrPostIDEmpty,
 		},
 		{
 			tname: "empty PostID (whitespace)",
 			submission: &Submission{
-				SubredditID: 12,
-				PostID:      "     ",
+				Subreddit: &subreddit.Subreddit{ID: 12},
+				PostID:    "     ",
 			},
 			wantErr: ErrPostIDEmpty,
 		},
@@ -392,31 +390,31 @@ func TestServiceCreate(t *testing.T) {
 			tname: "duplicate PostID",
 			repositorySubmissions: []*Submission{
 				{
-					SubredditID: 12,
-					ID:          1,
-					PostID:      "dupdup",
+					Subreddit: &subreddit.Subreddit{ID: 12},
+					ID:        1,
+					PostID:    "dupdup",
 				},
 			},
 			submission: &Submission{
-				SubredditID: 12,
-				PostID:      "dupdup",
+				Subreddit: &subreddit.Subreddit{ID: 12},
+				PostID:    "dupdup",
 			},
 			wantErr: ErrPostIDAlreadyRegistered,
 		},
 		{
 			tname: "empty title",
 			submission: &Submission{
-				SubredditID: 12,
-				PostID:      "notitl",
+				Subreddit: &subreddit.Subreddit{ID: 12},
+				PostID:    "notitl",
 			},
 			wantErr: ErrTitleEmpty,
 		},
 		{
 			tname: "empty title (whitespace)",
 			submission: &Submission{
-				SubredditID: 12,
-				PostID:      "notitle",
-				Title:       "    ",
+				Subreddit: &subreddit.Subreddit{ID: 12},
+				PostID:    "notitle",
+				Title:     "    ",
 			},
 			wantErr: ErrTitleEmpty,
 		},
@@ -489,13 +487,13 @@ func TestServiceRandom(t *testing.T) {
 					Title:         "Sunday Afternoon In The Park [640x480]",
 					ImageHeightPx: 480,
 					ImageWidthPx:  640,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 				{
 					Title:         "Laguna Sunrise [1920x1200]",
 					ImageHeightPx: 1200,
 					ImageWidthPx:  1920,
-					SubredditID:   1,
+					Subreddit:     &subreddit.Subreddit{ID: 1},
 				},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
@@ -579,17 +577,16 @@ func TestServiceSearch(t *testing.T) {
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, PostID: "m31aga", SubredditID: 1, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, PostID: "owlsrf", SubredditID: 1, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, PostID: "m31aga", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, PostID: "owlsrf", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			text: "nebula",
 			want: []*Submission{
 				{
-					ID:          2,
-					PostID:      "owlsrf",
-					SubredditID: 1,
-					Title:       "The Owl Nebula and Surfboard Galaxy",
-					Subreddit:   &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+					ID:        2,
+					PostID:    "owlsrf",
+					Title:     "The Owl Nebula and Surfboard Galaxy",
+					Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
 				},
 			},
 		},
@@ -599,24 +596,22 @@ func TestServiceSearch(t *testing.T) {
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, PostID: "m31aga", SubredditID: 1, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, PostID: "owlsrf", SubredditID: 1, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, PostID: "m31aga", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, PostID: "owlsrf", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			text: "galaxy",
 			want: []*Submission{
 				{
-					ID:          1,
-					PostID:      "m31aga",
-					SubredditID: 1,
-					Title:       "Messier 31 - The Andromeda Galaxy",
-					Subreddit:   &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+					ID:        1,
+					PostID:    "m31aga",
+					Title:     "Messier 31 - The Andromeda Galaxy",
+					Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
 				},
 				{
-					ID:          2,
-					PostID:      "owlsrf",
-					SubredditID: 1,
-					Title:       "The Owl Nebula and Surfboard Galaxy",
-					Subreddit:   &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+					ID:        2,
+					PostID:    "owlsrf",
+					Title:     "The Owl Nebula and Surfboard Galaxy",
+					Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
 				},
 			},
 		},
@@ -681,8 +676,8 @@ func assertSubmissionEquals(t *testing.T, want, got *Submission) {
 	if got.Title != want.Title {
 		t.Errorf("want title %q, got %q", want.Title, got.Title)
 	}
-	if got.SubredditID != want.SubredditID {
-		t.Errorf("want subreddit ID %d, got %d", want.SubredditID, got.SubredditID)
+	if got.Subreddit.ID != want.Subreddit.ID {
+		t.Errorf("want subreddit ID %d, got %d", want.Subreddit.ID, got.Subreddit.ID)
 	}
 }
 
