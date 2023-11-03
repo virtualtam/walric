@@ -10,7 +10,6 @@ import (
 	"github.com/virtualtam/walric/internal/storage/sqlite3"
 	"github.com/virtualtam/walric/pkg/history"
 	"github.com/virtualtam/walric/pkg/submission"
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 const (
@@ -25,7 +24,6 @@ var (
 
 	historyService    *history.Service
 	submissionService *submission.Service
-	subredditService  *subreddit.Service
 )
 
 // NewRootCommand initializes the main CLI entrypoint and common command flags.
@@ -54,8 +52,7 @@ Walric helps you manage a collection of curated wallpapers, courtesy of the Redd
 
 			sqliteRepository := sqlite3.NewRepository(db)
 
-			subredditService = subreddit.NewService(sqliteRepository)
-			submissionService = submission.NewService(sqliteRepository, subredditService)
+			submissionService = submission.NewService(sqliteRepository)
 			historyService = history.NewService(sqliteRepository, submissionService)
 
 			return nil

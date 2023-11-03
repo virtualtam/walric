@@ -14,7 +14,7 @@ func NewStatsCommand() *cobra.Command {
 		Use:   "stats",
 		Short: "Display statistics about gathered submissions",
 		Run: func(cmd *cobra.Command, args []string) {
-			stats, err := subredditService.Stats()
+			stats, err := submissionService.Stats()
 			if err != nil {
 				cobra.CheckErr(err)
 			}

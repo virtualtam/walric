@@ -1,6 +1,7 @@
 package submission
 
 import (
+	"errors"
 	"math/rand"
 	"strings"
 
@@ -11,8 +12,21 @@ var _ Repository = &RepositoryInMemory{}
 
 // repositoryInMemory provides an in-memory Repository for testing.
 type RepositoryInMemory struct {
-	currentID   int
-	submissions []*Submission
+	submissionCurrentID int
+	submissions         []*Submission
+
+	subredditCurrentID int
+	subreddits         []*Subreddit
+}
+
+func NewRepositoryInMemory(submissions []*Submission, subreddits []*Subreddit) *RepositoryInMemory {
+	return &RepositoryInMemory{
+		submissionCurrentID: len(submissions) + 1,
+		submissions:         submissions,
+
+		subredditCurrentID: len(subreddits) + 1,
+		subreddits:         subreddits,
+	}
 }
 
 func (r *RepositoryInMemory) SubmissionGetByID(id int) (*Submission, error) {
@@ -22,7 +36,7 @@ func (r *RepositoryInMemory) SubmissionGetByID(id int) (*Submission, error) {
 		}
 	}
 
-	return &Submission{}, ErrNotFound
+	return &Submission{}, ErrSubmissionNotFound
 }
 
 func (r *RepositoryInMemory) SubmissionGetByPostID(postID string) (*Submission, error) {
@@ -32,7 +46,7 @@ func (r *RepositoryInMemory) SubmissionGetByPostID(postID string) (*Submission, 
 		}
 	}
 
-	return &Submission{}, ErrNotFound
+	return &Submission{}, ErrSubmissionNotFound
 }
 
 func (r *RepositoryInMemory) SubmissionIsPostIDRegistered(postID string) (bool, error) {
@@ -70,7 +84,7 @@ func (r *RepositoryInMemory) SubmissionGetByMinResolution(minResolution *monitor
 
 func (r *RepositoryInMemory) SubmissionGetRandom(minResolution *monitor.Resolution) (*Submission, error) {
 	if len(r.submissions) == 0 {
-		return &Submission{}, ErrNotFound
+		return &Submission{}, ErrSubmissionNotFound
 	}
 
 	candidates, err := r.SubmissionGetByMinResolution(minResolution)
@@ -79,7 +93,7 @@ func (r *RepositoryInMemory) SubmissionGetRandom(minResolution *monitor.Resoluti
 	}
 
 	if len(candidates) == 0 {
-		return &Submission{}, ErrNotFound
+		return &Submission{}, ErrSubmissionNotFound
 	}
 
 	index := rand.Intn(len(candidates))
@@ -88,17 +102,57 @@ func (r *RepositoryInMemory) SubmissionGetRandom(minResolution *monitor.Resoluti
 }
 
 func (r *RepositoryInMemory) SubmissionCreate(submission *Submission) error {
-	submission.ID = r.currentID
-	r.currentID++
+	submission.ID = r.submissionCurrentID
+	r.submissionCurrentID++
 
 	r.submissions = append(r.submissions, submission)
 
 	return nil
 }
 
-func NewRepositoryInMemory(submissions []*Submission) *RepositoryInMemory {
-	return &RepositoryInMemory{
-		currentID:   len(submissions) + 1,
-		submissions: submissions,
+func (r *RepositoryInMemory) SubredditCreate(subreddit *Subreddit) error {
+	subreddit.ID = r.subredditCurrentID
+	r.subredditCurrentID++
+
+	r.subreddits = append(r.subreddits, subreddit)
+
+	return nil
+}
+
+func (r *RepositoryInMemory) SubredditGetAll() ([]*Subreddit, error) {
+	return r.subreddits, nil
+}
+
+func (r *RepositoryInMemory) SubredditGetStats() ([]SubredditStats, error) {
+	return []SubredditStats{}, errors.New("not implemented")
+}
+
+func (r *RepositoryInMemory) SubredditGetByID(id int) (*Subreddit, error) {
+	for _, subreddit := range r.subreddits {
+		if subreddit.ID == id {
+			return subreddit, nil
+		}
 	}
+
+	return &Subreddit{}, ErrSubredditNotFound
+}
+
+func (r *RepositoryInMemory) SubredditGetByName(name string) (*Subreddit, error) {
+	for _, subreddit := range r.subreddits {
+		if subreddit.Name == name {
+			return subreddit, nil
+		}
+	}
+
+	return &Subreddit{}, ErrSubredditNotFound
+}
+
+func (r *RepositoryInMemory) SubredditIsNameRegistered(name string) (bool, error) {
+	for _, subreddit := range r.subreddits {
+		if subreddit.Name == name {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

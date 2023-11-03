@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 // Submission represents the metadata for a Reddit post with an image
@@ -13,7 +11,7 @@ import (
 type Submission struct {
 	ID int
 
-	Subreddit *subreddit.Subreddit
+	Subreddit *Subreddit
 
 	// Reddit post metadata
 	Author    string
@@ -88,7 +86,7 @@ func (s *Submission) requirePositiveSubredditID() error {
 
 func (s *Submission) requireDefaultID() error {
 	if s.ID != 0 {
-		return ErrIDInvalid
+		return ErrSubmissionIDInvalid
 	}
 
 	return nil
@@ -96,7 +94,7 @@ func (s *Submission) requireDefaultID() error {
 
 func (s *Submission) requirePositiveID() error {
 	if s.ID <= 0 {
-		return ErrIDInvalid
+		return ErrSubmissionIDInvalid
 	}
 
 	return nil
@@ -111,7 +109,7 @@ func (s *Submission) ensurePostIDIsNotRegistered(r ValidationRepository) func() 
 		}
 
 		if registered {
-			return ErrPostIDAlreadyRegistered
+			return ErrSubmissionPostIDAlreadyRegistered
 		}
 
 		return nil
@@ -120,7 +118,7 @@ func (s *Submission) ensurePostIDIsNotRegistered(r ValidationRepository) func() 
 
 func (s *Submission) requirePostID() error {
 	if s.PostID == "" {
-		return ErrPostIDEmpty
+		return ErrSubmissionPostIDEmpty
 	}
 
 	return nil
@@ -128,7 +126,7 @@ func (s *Submission) requirePostID() error {
 
 func (s *Submission) requireTitle() error {
 	if s.Title == "" {
-		return ErrTitleEmpty
+		return ErrSubmissionTitleEmpty
 	}
 
 	return nil

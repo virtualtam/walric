@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/virtualtam/walric/pkg/submission"
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 type DBSubmission struct {
@@ -50,7 +49,7 @@ func newDBSubmission(sub *submission.Submission) *DBSubmission {
 	}
 }
 
-func (s *DBSubmission) AsSubmission(sr *subreddit.Subreddit) *submission.Submission {
+func (s *DBSubmission) AsSubmission(sr *submission.Subreddit) *submission.Submission {
 	return &submission.Submission{
 		ID:            s.ID,
 		Subreddit:     sr,

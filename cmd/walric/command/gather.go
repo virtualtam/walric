@@ -32,7 +32,7 @@ func NewGatherCommand() *cobra.Command {
 				Time:        walricConfig.Walric.TimeFilter,
 			}
 
-			gatherService := gather.NewService(redditClient, submissionService, subredditService, walricConfig.Walric.DataDir, listPostOptions)
+			gatherService := gather.NewService(redditClient, submissionService, walricConfig.Walric.DataDir, listPostOptions)
 
 			ctx := context.Background()
 

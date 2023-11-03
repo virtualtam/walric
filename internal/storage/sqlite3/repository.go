@@ -10,12 +10,10 @@ import (
 	"github.com/virtualtam/walric/pkg/history"
 	"github.com/virtualtam/walric/pkg/monitor"
 	"github.com/virtualtam/walric/pkg/submission"
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 var _ history.Repository = &Repository{}
 var _ submission.Repository = &Repository{}
-var _ subreddit.Repository = &Repository{}
 
 // Repository provides a SQLite3 database persistence layer for
 // Subreddits.
@@ -109,7 +107,7 @@ func (r *Repository) submissionGetQuery(query string, queryParams ...any) (*subm
 	err := r.db.QueryRowx(query, queryParams...).StructScan(dbSubmission)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return &submission.Submission{}, submission.ErrNotFound
+		return &submission.Submission{}, submission.ErrSubmissionNotFound
 	}
 	if err != nil {
 		return &submission.Submission{}, err
@@ -342,7 +340,7 @@ VALUES (
 	return nil
 }
 
-func (r *Repository) SubredditCreate(s *subreddit.Subreddit) error {
+func (r *Repository) SubredditCreate(s *submission.Subreddit) error {
 	_, err := r.db.NamedExec("INSERT INTO subreddits(name) VALUES(:name)", s)
 	if err != nil {
 		return err
@@ -351,20 +349,20 @@ func (r *Repository) SubredditCreate(s *subreddit.Subreddit) error {
 	return nil
 }
 
-func (r *Repository) SubredditGetAll() ([]*subreddit.Subreddit, error) {
+func (r *Repository) SubredditGetAll() ([]*submission.Subreddit, error) {
 	rows, err := r.db.Queryx("SELECT id, name from subreddits ORDER BY name COLLATE NOCASE")
 
 	if err != nil {
-		return []*subreddit.Subreddit{}, err
+		return []*submission.Subreddit{}, err
 	}
 
-	subreddits := []*subreddit.Subreddit{}
+	subreddits := []*submission.Subreddit{}
 
 	for rows.Next() {
-		s := &subreddit.Subreddit{}
+		s := &submission.Subreddit{}
 
 		if err := rows.StructScan(s); err != nil {
-			return []*subreddit.Subreddit{}, err
+			return []*submission.Subreddit{}, err
 		}
 
 		subreddits = append(subreddits, s)
@@ -373,29 +371,29 @@ func (r *Repository) SubredditGetAll() ([]*subreddit.Subreddit, error) {
 	return subreddits, nil
 }
 
-func (r *Repository) SubredditGetByID(id int) (*subreddit.Subreddit, error) {
-	s := &subreddit.Subreddit{}
+func (r *Repository) SubredditGetByID(id int) (*submission.Subreddit, error) {
+	s := &submission.Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE id=?", id).StructScan(s)
 	if errors.Is(err, sql.ErrNoRows) {
-		return &subreddit.Subreddit{}, subreddit.ErrNotFound
+		return &submission.Subreddit{}, submission.ErrSubredditNotFound
 	}
 	if err != nil {
-		return &subreddit.Subreddit{}, err
+		return &submission.Subreddit{}, err
 	}
 
 	return s, nil
 }
 
-func (r *Repository) SubredditGetByName(name string) (*subreddit.Subreddit, error) {
-	s := &subreddit.Subreddit{}
+func (r *Repository) SubredditGetByName(name string) (*submission.Subreddit, error) {
+	s := &submission.Subreddit{}
 
 	err := r.db.QueryRowx("SELECT id, name FROM subreddits WHERE name=?", name).StructScan(s)
 	if errors.Is(err, sql.ErrNoRows) {
-		return &subreddit.Subreddit{}, subreddit.ErrNotFound
+		return &submission.Subreddit{}, submission.ErrSubredditNotFound
 	}
 	if err != nil {
-		return &subreddit.Subreddit{}, err
+		return &submission.Subreddit{}, err
 	}
 
 	return s, nil
@@ -415,7 +413,7 @@ func (r *Repository) SubredditIsNameRegistered(name string) (bool, error) {
 	return true, nil
 }
 
-func (r *Repository) SubredditGetStats() ([]subreddit.SubredditStats, error) {
+func (r *Repository) SubredditGetStats() ([]submission.SubredditStats, error) {
 	rows, err := r.db.Queryx(`
 SELECT sr.name as name, COUNT(sm.post_id) as submissions
 FROM subreddits AS sr
@@ -425,16 +423,16 @@ ORDER BY sr.name COLLATE NOCASE
 `)
 
 	if err != nil {
-		return []subreddit.SubredditStats{}, err
+		return []submission.SubredditStats{}, err
 	}
 
-	subredditStats := []subreddit.SubredditStats{}
+	subredditStats := []submission.SubredditStats{}
 
 	for rows.Next() {
-		stats := subreddit.SubredditStats{}
+		stats := submission.SubredditStats{}
 
 		if err := rows.StructScan(&stats); err != nil {
-			return []subreddit.SubredditStats{}, err
+			return []submission.SubredditStats{}, err
 		}
 
 		subredditStats = append(subredditStats, stats)

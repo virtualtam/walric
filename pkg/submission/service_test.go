@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/virtualtam/walric/pkg/monitor"
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 func TestServiceByID(t *testing.T) {
 	testCases := []struct {
 		tname                 string
-		repositorySubreddits  []*subreddit.Subreddit
+		repositorySubreddits  []*Subreddit
 		repositorySubmissions []*Submission
 		id                    int
 		want                  *Submission
@@ -21,18 +20,18 @@ func TestServiceByID(t *testing.T) {
 		// nominal cases
 		{
 			tname: "existing ID",
-			repositorySubreddits: []*subreddit.Subreddit{
+			repositorySubreddits: []*Subreddit{
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, Subreddit: &Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, Subreddit: &Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			id: 2,
 			want: &Submission{
 				ID:        2,
 				Title:     "The Owl Nebula and Surfboard Galaxy",
-				Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+				Subreddit: &Subreddit{ID: 1, Name: "astrophotography"},
 			},
 		},
 		{
@@ -42,7 +41,7 @@ func TestServiceByID(t *testing.T) {
 				{ID: 2, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			id:      649,
-			wantErr: ErrNotFound,
+			wantErr: ErrSubmissionNotFound,
 		},
 		{
 			tname: "unknown ID",
@@ -51,34 +50,31 @@ func TestServiceByID(t *testing.T) {
 				{ID: 2, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			id:      649,
-			wantErr: ErrNotFound,
+			wantErr: ErrSubmissionNotFound,
 		},
 		{
 			tname:   "empty repository",
 			id:      649,
-			wantErr: ErrNotFound,
+			wantErr: ErrSubmissionNotFound,
 		},
 
 		// error cases
 		{
 			tname:   "ID is negative",
 			id:      -548,
-			wantErr: ErrIDInvalid,
+			wantErr: ErrSubmissionIDInvalid,
 		},
 		{
 			tname:   "ID equals zero",
 			id:      0,
-			wantErr: ErrIDInvalid,
+			wantErr: ErrSubmissionIDInvalid,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
-			subredditService := subreddit.NewService(subredditRepository)
-
-			repository := NewRepositoryInMemory(tc.repositorySubmissions)
-			service := NewService(repository, subredditService)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions, tc.repositorySubreddits)
+			service := NewService(repository)
 
 			submission, err := service.ByID(tc.id)
 
@@ -104,13 +100,12 @@ func TestServiceByID(t *testing.T) {
 }
 
 func TestServiceByMinResolution(t *testing.T) {
-	subredditRepository := subreddit.NewRepositoryInMemory([]*subreddit.Subreddit{
+	repositorySubreddits := []*Subreddit{
 		{
 			ID:   1,
 			Name: "Dummy",
 		},
-	})
-	subredditService := subreddit.NewService(subredditRepository)
+	}
 
 	testCases := []struct {
 		tname                 string
@@ -127,13 +122,13 @@ func TestServiceByMinResolution(t *testing.T) {
 					Title:         "Sunday Afternoon In The Park [640x480]",
 					ImageHeightPx: 480,
 					ImageWidthPx:  640,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 				{
 					Title:         "Laguna Sunrise [1920x1200]",
 					ImageHeightPx: 1200,
 					ImageWidthPx:  1920,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
@@ -147,17 +142,17 @@ func TestServiceByMinResolution(t *testing.T) {
 				{Title: "Sunday Afternoon In The Park [640x480]",
 					ImageHeightPx: 480,
 					ImageWidthPx:  640,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 				{Title: "Moroccan Sunset [2560x1440]",
 					ImageHeightPx: 1440,
 					ImageWidthPx:  2560,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 				{Title: "Laguna Sunrise [1920x1200]",
 					ImageHeightPx: 1200,
 					ImageWidthPx:  1920,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
@@ -199,8 +194,8 @@ func TestServiceByMinResolution(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tc.repositorySubmissions)
-			service := NewService(repository, subredditService)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions, repositorySubreddits)
+			service := NewService(repository)
 
 			submissions, err := service.ByMinResolution(tc.minResolution)
 
@@ -229,7 +224,7 @@ func TestServiceByMinResolution(t *testing.T) {
 func TestServiceByPostID(t *testing.T) {
 	testCases := []struct {
 		tname                 string
-		repositorySubreddits  []*subreddit.Subreddit
+		repositorySubreddits  []*Subreddit
 		repositorySubmissions []*Submission
 		postID                string
 		want                  *Submission
@@ -238,19 +233,19 @@ func TestServiceByPostID(t *testing.T) {
 		// nominal cases
 		{
 			tname: "existing ID",
-			repositorySubreddits: []*subreddit.Subreddit{
+			repositorySubreddits: []*Subreddit{
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, PostID: "m31aga", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, PostID: "owlsrf", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, PostID: "m31aga", Subreddit: &Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, PostID: "owlsrf", Subreddit: &Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			postID: "owlsrf",
 			want: &Submission{
 				ID:        2,
 				PostID:    "owlsrf",
 				Title:     "The Owl Nebula and Surfboard Galaxy",
-				Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+				Subreddit: &Subreddit{ID: 1, Name: "astrophotography"},
 			},
 		},
 
@@ -262,32 +257,29 @@ func TestServiceByPostID(t *testing.T) {
 				{ID: 2, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			postID:  "unkwn",
-			wantErr: ErrNotFound,
+			wantErr: ErrSubmissionNotFound,
 		},
 		{
 			tname:   "empty repository",
 			postID:  "unkwn",
-			wantErr: ErrNotFound,
+			wantErr: ErrSubmissionNotFound,
 		},
 		{
 			tname:   "empty PostID",
 			postID:  "",
-			wantErr: ErrPostIDEmpty,
+			wantErr: ErrSubmissionPostIDEmpty,
 		},
 		{
 			tname:   "whitespace (empty) PostID",
 			postID:  "       ",
-			wantErr: ErrPostIDEmpty,
+			wantErr: ErrSubmissionPostIDEmpty,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
-			subredditService := subreddit.NewService(subredditRepository)
-
-			repository := NewRepositoryInMemory(tc.repositorySubmissions)
-			service := NewService(repository, subredditService)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions, tc.repositorySubreddits)
+			service := NewService(repository)
 
 			submission, err := service.ByPostID(tc.postID)
 
@@ -316,21 +308,21 @@ func TestServiceCreate(t *testing.T) {
 	testCases := []struct {
 		tname                 string
 		repositorySubmissions []*Submission
-		repositorySubreddits  []*subreddit.Subreddit
+		repositorySubreddits  []*Subreddit
 		submission            *Submission
 		wantErr               error
 	}{
 		// nominal cases
 		{
 			tname: "new submission",
-			repositorySubreddits: []*subreddit.Subreddit{
+			repositorySubreddits: []*Subreddit{
 				{
 					ID:   25,
 					Name: "Dummy",
 				},
 			},
 			submission: &Submission{
-				Subreddit:     &subreddit.Subreddit{ID: 25},
+				Subreddit:     &Subreddit{ID: 25},
 				Author:        "janedoe",
 				Permalink:     "r/dummy/comments/newnew/new_submission/",
 				PostID:        "newnew",
@@ -350,84 +342,81 @@ func TestServiceCreate(t *testing.T) {
 		{
 			tname: "negative subreddit ID",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: -583},
+				Subreddit: &Subreddit{ID: -583},
 			},
 			wantErr: ErrSubredditIDInvalid,
 		},
 		{
 			tname: "subreddit ID equals zero",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 0},
+				Subreddit: &Subreddit{ID: 0},
 			},
 			wantErr: ErrSubredditIDInvalid,
 		},
 		{
 			tname: "non-default ID",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 12},
+				Subreddit: &Subreddit{ID: 12},
 				ID:        179,
 				PostID:    "nondft",
 				Title:     "Non-default [0x0]",
 			},
-			wantErr: ErrIDInvalid,
+			wantErr: ErrSubmissionIDInvalid,
 		},
 		{
 			tname: "empty PostID",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 12},
+				Subreddit: &Subreddit{ID: 12},
 			},
-			wantErr: ErrPostIDEmpty,
+			wantErr: ErrSubmissionPostIDEmpty,
 		},
 		{
 			tname: "empty PostID (whitespace)",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 12},
+				Subreddit: &Subreddit{ID: 12},
 				PostID:    "     ",
 			},
-			wantErr: ErrPostIDEmpty,
+			wantErr: ErrSubmissionPostIDEmpty,
 		},
 		{
 			tname: "duplicate PostID",
 			repositorySubmissions: []*Submission{
 				{
-					Subreddit: &subreddit.Subreddit{ID: 12},
+					Subreddit: &Subreddit{ID: 12},
 					ID:        1,
 					PostID:    "dupdup",
 				},
 			},
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 12},
+				Subreddit: &Subreddit{ID: 12},
 				PostID:    "dupdup",
 			},
-			wantErr: ErrPostIDAlreadyRegistered,
+			wantErr: ErrSubmissionPostIDAlreadyRegistered,
 		},
 		{
 			tname: "empty title",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 12},
+				Subreddit: &Subreddit{ID: 12},
 				PostID:    "notitl",
 			},
-			wantErr: ErrTitleEmpty,
+			wantErr: ErrSubmissionTitleEmpty,
 		},
 		{
 			tname: "empty title (whitespace)",
 			submission: &Submission{
-				Subreddit: &subreddit.Subreddit{ID: 12},
+				Subreddit: &Subreddit{ID: 12},
 				PostID:    "notitle",
 				Title:     "    ",
 			},
-			wantErr: ErrTitleEmpty,
+			wantErr: ErrSubmissionTitleEmpty,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
-			subredditService := subreddit.NewService(subredditRepository)
-
-			repository := NewRepositoryInMemory(tc.repositorySubmissions)
-			currentID := repository.currentID
-			service := NewService(repository, subredditService)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions, tc.repositorySubreddits)
+			currentID := repository.submissionCurrentID
+			service := NewService(repository)
 
 			err := service.Create(tc.submission)
 
@@ -464,13 +453,12 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceRandom(t *testing.T) {
-	subredditRepository := subreddit.NewRepositoryInMemory([]*subreddit.Subreddit{
+	repositorySubreddits := []*Subreddit{
 		{
 			ID:   1,
 			Name: "Dummy",
 		},
-	})
-	subredditService := subreddit.NewService(subredditRepository)
+	}
 
 	testCases := []struct {
 		tname                 string
@@ -487,13 +475,13 @@ func TestServiceRandom(t *testing.T) {
 					Title:         "Sunday Afternoon In The Park [640x480]",
 					ImageHeightPx: 480,
 					ImageWidthPx:  640,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 				{
 					Title:         "Laguna Sunrise [1920x1200]",
 					ImageHeightPx: 1200,
 					ImageWidthPx:  1920,
-					Subreddit:     &subreddit.Subreddit{ID: 1},
+					Subreddit:     &Subreddit{ID: 1},
 				},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
@@ -502,7 +490,7 @@ func TestServiceRandom(t *testing.T) {
 		{
 			tname:         "not found (empty repository)",
 			minResolution: &monitor.Resolution{HeightPx: 1200, WidthPx: 1920},
-			wantErr:       ErrNotFound,
+			wantErr:       ErrSubmissionNotFound,
 		},
 		{
 			tname: "not found (no result)",
@@ -511,7 +499,7 @@ func TestServiceRandom(t *testing.T) {
 				{Title: "Laguna Sunrise [1920x1200]", ImageHeightPx: 1200, ImageWidthPx: 1920},
 			},
 			minResolution: &monitor.Resolution{HeightPx: 1440, WidthPx: 2560},
-			wantErr:       ErrNotFound,
+			wantErr:       ErrSubmissionNotFound,
 		},
 
 		// error cases
@@ -534,8 +522,8 @@ func TestServiceRandom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
-			repository := NewRepositoryInMemory(tc.repositorySubmissions)
-			service := NewService(repository, subredditService)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions, repositorySubreddits)
+			service := NewService(repository)
 
 			submission, err := service.Random(tc.minResolution)
 
@@ -564,7 +552,7 @@ func TestServiceRandom(t *testing.T) {
 func TestServiceSearch(t *testing.T) {
 	testCases := []struct {
 		tname                 string
-		repositorySubreddits  []*subreddit.Subreddit
+		repositorySubreddits  []*Subreddit
 		repositorySubmissions []*Submission
 		text                  string
 		want                  []*Submission
@@ -573,12 +561,12 @@ func TestServiceSearch(t *testing.T) {
 		// nominal cases
 		{
 			tname: "single result",
-			repositorySubreddits: []*subreddit.Subreddit{
+			repositorySubreddits: []*Subreddit{
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, PostID: "m31aga", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, PostID: "owlsrf", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, PostID: "m31aga", Subreddit: &Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, PostID: "owlsrf", Subreddit: &Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			text: "nebula",
 			want: []*Submission{
@@ -586,18 +574,18 @@ func TestServiceSearch(t *testing.T) {
 					ID:        2,
 					PostID:    "owlsrf",
 					Title:     "The Owl Nebula and Surfboard Galaxy",
-					Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+					Subreddit: &Subreddit{ID: 1, Name: "astrophotography"},
 				},
 			},
 		},
 		{
 			tname: "multiple results",
-			repositorySubreddits: []*subreddit.Subreddit{
+			repositorySubreddits: []*Subreddit{
 				{ID: 1, Name: "astrophotography"},
 			},
 			repositorySubmissions: []*Submission{
-				{ID: 1, PostID: "m31aga", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
-				{ID: 2, PostID: "owlsrf", Subreddit: &subreddit.Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
+				{ID: 1, PostID: "m31aga", Subreddit: &Subreddit{ID: 1}, Title: "Messier 31 - The Andromeda Galaxy"},
+				{ID: 2, PostID: "owlsrf", Subreddit: &Subreddit{ID: 1}, Title: "The Owl Nebula and Surfboard Galaxy"},
 			},
 			text: "galaxy",
 			want: []*Submission{
@@ -605,13 +593,13 @@ func TestServiceSearch(t *testing.T) {
 					ID:        1,
 					PostID:    "m31aga",
 					Title:     "Messier 31 - The Andromeda Galaxy",
-					Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+					Subreddit: &Subreddit{ID: 1, Name: "astrophotography"},
 				},
 				{
 					ID:        2,
 					PostID:    "owlsrf",
 					Title:     "The Owl Nebula and Surfboard Galaxy",
-					Subreddit: &subreddit.Subreddit{ID: 1, Name: "astrophotography"},
+					Subreddit: &Subreddit{ID: 1, Name: "astrophotography"},
 				},
 			},
 		},
@@ -620,22 +608,19 @@ func TestServiceSearch(t *testing.T) {
 		{
 			tname:   "empty text",
 			text:    "",
-			wantErr: ErrSearchTextEmpty,
+			wantErr: ErrSubmissionSearchTextEmpty,
 		},
 		{
 			tname:   "whitespace (empty) text",
 			text:    "       ",
-			wantErr: ErrSearchTextEmpty,
+			wantErr: ErrSubmissionSearchTextEmpty,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.tname, func(t *testing.T) {
-			subredditRepository := subreddit.NewRepositoryInMemory(tc.repositorySubreddits)
-			subredditService := subreddit.NewService(subredditRepository)
-
-			repository := NewRepositoryInMemory(tc.repositorySubmissions)
-			service := NewService(repository, subredditService)
+			repository := NewRepositoryInMemory(tc.repositorySubmissions, tc.repositorySubreddits)
+			service := NewService(repository)
 
 			submissions, err := service.Search(tc.text)
 
@@ -662,6 +647,222 @@ func TestServiceSearch(t *testing.T) {
 			for index, want := range tc.want {
 				assertSubmissionEquals(t, want, submissions[index])
 				assertSubmissionSubredditEquals(t, want, submissions[index])
+			}
+		})
+	}
+}
+
+func TestServiceSubredditByID(t *testing.T) {
+	testCases := []struct {
+		tname                string
+		repositorySubreddits []*Subreddit
+		id                   int
+		want                 *Subreddit
+		wantErr              error
+	}{
+		// nominal cases
+		{
+			tname: "return by ID",
+			repositorySubreddits: []*Subreddit{
+				{ID: 1, Name: "astrophotography"},
+				{ID: 2, Name: "FromSpaceWithLove"},
+				{ID: 3, Name: "Museum"},
+			},
+			id:   2,
+			want: &Subreddit{ID: 2, Name: "FromSpaceWithLove"},
+		},
+		{
+			tname:   "not found",
+			id:      9362,
+			wantErr: ErrSubredditNotFound,
+		},
+
+		// error cases
+		{
+			tname:   "ID is negative",
+			id:      -548,
+			wantErr: ErrSubredditIDInvalid,
+		},
+		{
+			tname:   "ID equals zero",
+			id:      0,
+			wantErr: ErrSubredditIDInvalid,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(nil, tc.repositorySubreddits)
+			service := NewService(repository)
+
+			subreddit, err := service.subredditByID(tc.id)
+
+			if tc.wantErr != nil {
+				if err == nil {
+					t.Error("expected an error but got none")
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Errorf("expected no error but got %q", err)
+				return
+			}
+
+			if subreddit.ID != tc.want.ID {
+				t.Errorf("want ID %d, got %d", tc.want.ID, subreddit.ID)
+			}
+			if subreddit.Name != tc.want.Name {
+				t.Errorf("want name %q, got %q", tc.want.Name, subreddit.Name)
+			}
+		})
+	}
+}
+
+func TestServiceSubredditByName(t *testing.T) {
+	testCases := []struct {
+		tname                string
+		repositorySubreddits []*Subreddit
+		name                 string
+		want                 *Subreddit
+		wantErr              error
+	}{
+		// nominal cases
+		{
+			tname: "return by ID",
+			repositorySubreddits: []*Subreddit{
+				{ID: 1, Name: "astrophotography"},
+				{ID: 2, Name: "FromSpaceWithLove"},
+				{ID: 3, Name: "Museum"},
+			},
+			name: "FromSpaceWithLove",
+			want: &Subreddit{ID: 2, Name: "FromSpaceWithLove"},
+		},
+		{
+			tname:   "not found",
+			name:    "Unknown",
+			wantErr: ErrSubredditNotFound,
+		},
+
+		// error cases
+		{
+			tname:   "empty name",
+			name:    "",
+			wantErr: ErrSubredditNameEmpty,
+		},
+		{
+			tname:   "empty name (whitespace)",
+			name:    "     ",
+			wantErr: ErrSubredditNameEmpty,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(nil, tc.repositorySubreddits)
+			validator := NewService(repository)
+
+			subreddit, err := validator.SubredditByName(tc.name)
+
+			if tc.wantErr != nil {
+				if err == nil {
+					t.Error("expected an error but got none")
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Errorf("expected no error but got %q", err)
+				return
+			}
+
+			if subreddit.ID != tc.want.ID {
+				t.Errorf("want ID %d, got %d", tc.want.ID, subreddit.ID)
+			}
+			if subreddit.Name != tc.want.Name {
+				t.Errorf("want name %q, got %q", tc.want.Name, subreddit.Name)
+			}
+		})
+	}
+}
+
+func TestServiceSubredditCreate(t *testing.T) {
+	testCases := []struct {
+		tname                string
+		repositorySubreddits []*Subreddit
+		subreddit            *Subreddit
+		wantErr              error
+	}{
+		// nominal cases
+		{
+			tname:     "new subreddit",
+			subreddit: &Subreddit{Name: "FromSpaceWithLove"},
+		},
+		{
+			tname: "duplicate subreddit",
+			repositorySubreddits: []*Subreddit{
+				{ID: 1, Name: "FromSpaceWithLove"},
+			},
+			subreddit: &Subreddit{Name: "FromSpaceWithLove"},
+			wantErr:   ErrSubredditNameAlreadyRegistered,
+		},
+
+		// error cases
+		{
+			tname:     "empty name",
+			subreddit: &Subreddit{Name: ""},
+			wantErr:   ErrSubredditNameEmpty,
+		},
+		{
+			tname:     "empty name (whitespace)",
+			subreddit: &Subreddit{Name: "   "},
+			wantErr:   ErrSubredditNameEmpty,
+		},
+		{
+			tname:     "non-default ID",
+			subreddit: &Subreddit{ID: 12, Name: "NonZero"},
+			wantErr:   ErrSubredditIDInvalid,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.tname, func(t *testing.T) {
+			repository := NewRepositoryInMemory(nil, tc.repositorySubreddits)
+			currentID := repository.subredditCurrentID
+			service := NewService(repository)
+
+			err := service.SubredditCreate(tc.subreddit)
+
+			if tc.wantErr != nil {
+				if err == nil {
+					t.Error("expected an error but got none")
+				} else if !errors.Is(err, tc.wantErr) {
+					t.Errorf("want error %q, got %q", tc.wantErr, err)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Errorf("expected no error but got %q", err)
+			}
+
+			subreddit, err := service.subredditByID(currentID)
+			if err != nil {
+				t.Errorf("failed to retrieve subreddit: %q", err)
+			}
+
+			if subreddit.ID != currentID {
+				t.Errorf("want ID %d, got %d", currentID, subreddit.ID)
+			}
+			if subreddit.Name != tc.subreddit.Name {
+				t.Errorf("want name %q, got %q", tc.subreddit.Name, subreddit.Name)
 			}
 		})
 	}

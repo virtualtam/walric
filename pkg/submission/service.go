@@ -1,24 +1,21 @@
 package submission
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/virtualtam/walric/pkg/monitor"
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
-// Service handles domain operations for Submission management.
+// Service handles domain operations for Submission and Subreddit management.
 type Service struct {
 	r Repository
-
-	subredditService *subreddit.Service
 }
 
-// NewService creates and initializes a Submission Service.
-func NewService(repository Repository, subredditService *subreddit.Service) *Service {
+// NewService creates and initializes a Submission and Subreddit Service.
+func NewService(repository Repository) *Service {
 	return &Service{
-		r:                repository,
-		subredditService: subredditService,
+		r: repository,
 	}
 }
 
@@ -35,7 +32,7 @@ func (s *Service) ByID(id int) (*Submission, error) {
 		return &Submission{}, err
 	}
 
-	subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
+	subreddit, err := s.subredditByID(submission.Subreddit.ID)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -58,7 +55,7 @@ func (s *Service) ByMinResolution(minResolution *monitor.Resolution) ([]*Submiss
 	}
 
 	for _, submission := range submissions {
-		subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
+		subreddit, err := s.subredditByID(submission.Subreddit.ID)
 		if err != nil {
 			return []*Submission{}, err
 		}
@@ -83,7 +80,7 @@ func (s *Service) ByPostID(postID string) (*Submission, error) {
 		return &Submission{}, err
 	}
 
-	subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
+	subreddit, err := s.subredditByID(submission.Subreddit.ID)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -108,7 +105,7 @@ func (s *Service) Create(submission *Submission) error {
 func (s *Service) Search(text string) ([]*Submission, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
-		return []*Submission{}, ErrSearchTextEmpty
+		return []*Submission{}, ErrSubmissionSearchTextEmpty
 	}
 
 	submissions, err := s.r.SubmissionSearch(text)
@@ -117,7 +114,7 @@ func (s *Service) Search(text string) ([]*Submission, error) {
 	}
 
 	for _, submission := range submissions {
-		subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
+		subreddit, err := s.subredditByID(submission.Subreddit.ID)
 		if err != nil {
 			return []*Submission{}, err
 		}
@@ -140,7 +137,7 @@ func (s *Service) Random(minResolution *monitor.Resolution) (*Submission, error)
 		return &Submission{}, err
 	}
 
-	subreddit, err := s.subredditService.ByID(submission.Subreddit.ID)
+	subreddit, err := s.subredditByID(submission.Subreddit.ID)
 	if err != nil {
 		return &Submission{}, err
 	}
@@ -148,4 +145,63 @@ func (s *Service) Random(minResolution *monitor.Resolution) (*Submission, error)
 	submission.Subreddit = subreddit
 
 	return submission, err
+}
+
+// Stats returns statistics about how many Submissions were gathered per Subreddit.
+func (s *Service) Stats() ([]SubredditStats, error) {
+	return s.r.SubredditGetStats()
+}
+
+func (s *Service) subredditByID(id int) (*Subreddit, error) {
+	sr := &Subreddit{ID: id}
+
+	if err := sr.requirePositiveID(); err != nil {
+		return &Subreddit{}, err
+	}
+
+	return s.r.SubredditGetByID(id)
+}
+
+// SubredditCreate creates a new Subreddit.
+func (s *Service) SubredditCreate(sr *Subreddit) error {
+	sr.Normalize()
+
+	if err := sr.ValidateForAddition(s.r); err != nil {
+		return err
+	}
+
+	return s.r.SubredditCreate(sr)
+}
+
+// SubredditGetOrCreateByName returns an existing Subreddit or creates it otherwise.
+func (s *Service) SubredditGetOrCreateByName(name string) (*Subreddit, error) {
+	subreddit, err := s.SubredditByName(name)
+
+	if errors.Is(err, ErrSubredditNotFound) {
+		subreddit = &Subreddit{Name: name}
+		if err = s.SubredditCreate(subreddit); err != nil {
+			return &Subreddit{}, err
+		}
+
+		subreddit, err = s.SubredditByName(name)
+		if err != nil {
+			return &Subreddit{}, err
+		}
+	} else if err != nil {
+		return &Subreddit{}, err
+	}
+
+	return subreddit, nil
+}
+
+// SubredditByName returns the SUbreddit for a given name.
+func (s *Service) SubredditByName(name string) (*Subreddit, error) {
+	sr := &Subreddit{Name: name}
+	sr.Normalize()
+
+	if err := sr.requireName(); err != nil {
+		return &Subreddit{}, err
+	}
+
+	return s.r.SubredditGetByName(sr.Name)
 }

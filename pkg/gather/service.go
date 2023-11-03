@@ -13,7 +13,6 @@ import (
 	"github.com/sethjones/go-reddit/v2/reddit"
 	"github.com/sourcegraph/conc/pool"
 	"github.com/virtualtam/walric/pkg/submission"
-	"github.com/virtualtam/walric/pkg/subreddit"
 )
 
 const (
@@ -24,17 +23,15 @@ const (
 type Service struct {
 	client            *reddit.Client
 	submissionService *submission.Service
-	subredditService  *subreddit.Service
 	dataDir           string
 	listPostOptions   *reddit.ListPostOptions
 }
 
 // NewService creates and initializes a new Service.
-func NewService(client *reddit.Client, submissionService *submission.Service, subredditService *subreddit.Service, dataDir string, listPostOptions *reddit.ListPostOptions) *Service {
+func NewService(client *reddit.Client, submissionService *submission.Service, dataDir string, listPostOptions *reddit.ListPostOptions) *Service {
 	return &Service{
 		client:            client,
 		submissionService: submissionService,
-		subredditService:  subredditService,
 		dataDir:           dataDir,
 		listPostOptions:   listPostOptions,
 	}
@@ -74,7 +71,7 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 			continue
 		}
 
-		if err != submission.ErrNotFound {
+		if err != submission.ErrSubmissionNotFound {
 			log.Error().Err(err).Msgf("database: failed to query submission information")
 			return []*reddit.Post{}, err
 		}
@@ -104,7 +101,7 @@ func (s *Service) filterPosts(posts []*reddit.Post) ([]*reddit.Post, error) {
 	return imagePosts, nil
 }
 
-func (s *Service) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subredditName string, subredditDir string, post *reddit.Post) error {
+func (s *Service) gatherImageSubmission(sr *submission.Subreddit, subredditName string, subredditDir string, post *reddit.Post) error {
 	postImage, err := newPostImage(subredditDir, post)
 	if err != nil {
 		log.Error().Err(err).Msgf("%s: failed to fetch image metadata from URL: %s", subredditName, post.URL)
@@ -140,7 +137,7 @@ func (s *Service) gatherImageSubmission(dbSubreddit *subreddit.Subreddit, subred
 	}
 
 	dbSubmission := &submission.Submission{
-		Subreddit:     dbSubreddit,
+		Subreddit:     sr,
 		Author:        post.Author,
 		Permalink:     post.Permalink,
 		PostID:        post.ID,
@@ -171,7 +168,7 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 		return err
 	}
 
-	dbSubreddit, err := s.subredditService.GetOrCreateByName(subredditName)
+	sr, err := s.submissionService.SubredditGetOrCreateByName(subredditName)
 	if err != nil {
 		log.Error().Err(err).Msgf("%s: failed to query database", subredditName)
 	}
@@ -180,7 +177,7 @@ func (s *Service) gatherImageSubmissions(ctx context.Context, subredditName stri
 	for _, post := range posts {
 		workerPost := post
 		workerPool.Go(func() error {
-			return s.gatherImageSubmission(dbSubreddit, subredditName, subredditDir, workerPost)
+			return s.gatherImageSubmission(sr, subredditName, subredditDir, workerPost)
 		})
 	}
 	if err := workerPool.Wait(); err != nil {

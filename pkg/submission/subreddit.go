@@ -1,4 +1,4 @@
-package subreddit
+package submission
 
 import (
 	"strings"
@@ -41,7 +41,7 @@ func (sr *Subreddit) ensureNameIsNotRegistered(r ValidationRepository) func() er
 		}
 
 		if registered {
-			return ErrNameAlreadyRegistered
+			return ErrSubredditNameAlreadyRegistered
 		}
 
 		return nil
@@ -54,7 +54,7 @@ func (sr *Subreddit) normalizeName() {
 
 func (sr *Subreddit) requireDefaultID() error {
 	if sr.ID != 0 {
-		return ErrIDInvalid
+		return ErrSubredditIDInvalid
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (sr *Subreddit) requireDefaultID() error {
 
 func (sr *Subreddit) requirePositiveID() error {
 	if sr.ID <= 0 {
-		return ErrIDInvalid
+		return ErrSubredditIDInvalid
 	}
 
 	return nil
@@ -70,14 +70,8 @@ func (sr *Subreddit) requirePositiveID() error {
 
 func (sr *Subreddit) requireName() error {
 	if sr.Name == "" {
-		return ErrNameEmpty
+		return ErrSubredditNameEmpty
 	}
 
 	return nil
-}
-
-// SubredditStats holds the aggregated usage statistics for a given Subreddit.
-type SubredditStats struct {
-	Name        string
-	Submissions int
 }
